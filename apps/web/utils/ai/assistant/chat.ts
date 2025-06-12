@@ -2,7 +2,8 @@ import { type Message, type StepResult, type Tool, tool } from "ai";
 import { z } from "zod";
 import { createScopedLogger } from "@/utils/logger";
 import { createRuleSchema } from "@/utils/ai/rule/create-rule-schema";
-import prisma, { isDuplicateError } from "@/utils/prisma";
+import prisma from "@/utils/prisma";
+import { isDuplicateError } from "@/utils/prisma-helpers";
 import {
   createRule,
   partialUpdateRule,
@@ -20,22 +21,20 @@ const logger = createScopedLogger("ai/assistant/chat");
 export const maxDuration = 120;
 
 // schemas
-export type CreateRuleSchema = z.infer<typeof createRuleSchema>;
-
 const updateRuleConditionSchema = z.object({
   ruleName: z.string().describe("The name of the rule to update"),
   condition: z.object({
     aiInstructions: z.string().optional(),
     static: z
       .object({
-        from: z.string().nullable(),
-        to: z.string().nullable(),
-        subject: z.string().nullable(),
+        from: z.string().nullish(),
+        to: z.string().nullish(),
+        subject: z.string().nullish(),
       })
-      .nullable(),
+      .nullish(),
     conditionalOperator: z
       .enum([LogicalOperator.AND, LogicalOperator.OR])
-      .nullable(),
+      .nullish(),
   }),
 });
 export type UpdateRuleConditionSchema = z.infer<
@@ -83,13 +82,13 @@ const updateRuleActionsSchema = z.object({
         ActionType.CALL_WEBHOOK,
       ]),
       fields: z.object({
-        label: z.string().optional(),
-        content: z.string().optional(),
-        webhookUrl: z.string().optional(),
-        to: z.string().optional(),
-        cc: z.string().optional(),
-        bcc: z.string().optional(),
-        subject: z.string().optional(),
+        label: z.string().nullish(),
+        content: z.string().nullish(),
+        webhookUrl: z.string().nullish(),
+        to: z.string().nullish(),
+        cc: z.string().nullish(),
+        bcc: z.string().nullish(),
+        subject: z.string().nullish(),
       }),
     }),
   ),
@@ -113,7 +112,7 @@ export type UpdateRuleActionsResult = {
   }>;
   updatedActions?: Array<{
     type: string;
-    fields: Record<string, string | undefined>;
+    fields: Record<string, string | null>;
   }>;
   error?: string;
 };

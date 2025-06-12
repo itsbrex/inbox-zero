@@ -1,7 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import prisma, { isNotFoundError } from "@/utils/prisma";
+import prisma from "@/utils/prisma";
+import { isNotFoundError } from "@/utils/prisma-helpers";
 import { ExecutedRuleStatus } from "@prisma/client";
 import { aiCreateRule } from "@/utils/ai/rule/create-rule";
 import {
@@ -94,7 +95,6 @@ export const runRulesAction = actionClient
         where: {
           emailAccountId,
           enabled: true,
-          instructions: { not: null },
         },
         include: { actions: true, categoryFilters: true },
       });
@@ -212,7 +212,7 @@ export const approvePlanAction = actionClient
         where: { id: executedRuleId },
         include: { actionItems: true },
       });
-      if (!executedRule) return { error: "Item not found" };
+      if (!executedRule) throw new SafeError("Plan not found");
 
       await executeAct({
         gmail,
@@ -276,7 +276,7 @@ export const saveRulesPromptAction = actionClient
 
     if (!emailAccount) {
       logger.error("Email account not found");
-      return { error: "Email account not found" };
+      throw new SafeError("Email account not found");
     }
 
     const oldPromptFile = emailAccount.rulesPrompt;
@@ -508,7 +508,7 @@ export const generateRulesPromptAction = actionClient
   .action(async ({ ctx: { emailAccountId } }) => {
     const emailAccount = await getEmailAccountWithAi({ emailAccountId });
 
-    if (!emailAccount) return { error: "Email account not found" };
+    if (!emailAccount) throw new SafeError("Email account not found");
 
     const gmail = await getGmailClientForEmail({ emailAccountId });
     const lastSent = await getMessages(gmail, {
@@ -565,7 +565,7 @@ export const generateRulesPromptAction = actionClient
       userLabels: labelsWithCounts.map((label) => label.label),
     });
 
-    if (!result) return { error: "Error generating rules prompt" };
+    if (!result) throw new SafeError("Error generating rules prompt");
 
     return { rulesPrompt: result.join("\n\n") };
   });
