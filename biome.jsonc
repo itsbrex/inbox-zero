@@ -1,5 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
   "linter": {
     "enabled": true,
     "rules": {
@@ -30,11 +35,6 @@
         "useAwait": "off",
         "noEvolvingTypes": "off",
         "noDocumentCookie": "off",
-        "noConstantBinaryExpressions": "off",
-        "noBitwiseOperators": "off",
-        "noTsIgnore": "off",
-        "useIterableCallbackReturn": "off",
-        "noUnknownAtRules": "off",
         "noAlert": "off"
       },
       "complexity": {
@@ -48,27 +48,22 @@
         "noShadow": "off",
         "noUselessUndefined": "off",
         "useMaxParams": "off",
-        "useConsistentTypeDefinitions": "off",
         "noUnnecessaryConditions": "off"
       },
       "performance": {
         "useTopLevelRegex": "off",
-        "noNamespaceImport": "off",
-        "noAwaitInLoops": "off"
+        "noNamespaceImport": "off"
       },
       "correctness": {
         "noUnusedImports": "warn",
         "noUnusedVariables": "warn",
         "noUnusedFunctionParameters": "warn",
-        "useExhaustiveDependencies": "warn",
-        "useParseIntRadix": "off",
-        "noNestedComponentDefinitions": "off"
+        "useExhaustiveDependencies": "warn"
       },
       "a11y": {
         "useSemanticElements": "off",
         "noStaticElementInteractions": "off",
-        "noSvgWithoutTitle": "off",
-        "noNoninteractiveElementInteractions": "off"
+        "noSvgWithoutTitle": "off"
       }
     }
   },
@@ -79,12 +74,11 @@
     "includes": [
       "apps/**",
       "packages/**",
-      "!node_modules/**",
-      "!*.config.*",
-      "!*.json",
-      "!**/tsconfig*.json",
-      "!.turbo/**",
-      "!.next/**"
+      "!!**/node_modules/**",
+      "!!*.config.json",
+      "!!**/tsconfig*.json",
+      "!!**/.turbo/**",
+      "!!**/.next/**"
     ]
   },
   "javascript": {
@@ -97,14 +91,15 @@
     "includes": [
       "apps/**",
       "packages/**",
-      "!node_modules",
-      "!*.config.*",
-      "!*.json",
-      "!**/tsconfig*.json",
-      "!.turbo",
-      "!.next",
-      "!sw.js",
-      "!.vscode"
+      "!!**/dist",
+      "!!**/node_modules",
+      "!!**/*.config.*",
+      "!!**/*.json",
+      "!!**/tsconfig*.json",
+      "!!**/.turbo",
+      "!!**/.next",
+      "!!**/sw.js",
+      "!!**/.vscode"
     ]
   },
   "assist": {
@@ -134,6 +129,5 @@
         }
       }
     }
-  ],
-  "extends": ["ultracite"]
+  ]
 }
