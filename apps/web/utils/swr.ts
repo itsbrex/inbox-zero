@@ -9,7 +9,9 @@ export function useSWRWithEmailAccount<Data = any, Error = any>(url: string) {
   return useSWR<Data, Error>(emailAccountId ? url : null);
 }
 
-type NormalizedError = { error: string };
+interface NormalizedError {
+  error: string;
+}
 
 /**
  * Processes the result of an SWR hook, normalizing errors.

@@ -37,11 +37,11 @@ import type { RulesResponse } from "@/app/api/user/rules/route";
 import { EMAIL_ACCOUNT_HEADER } from "@/utils/config";
 import { prefixPath } from "@/utils/path";
 
-type SourceAccount = {
+interface SourceAccount {
   id: string;
   name: string | null;
   email: string;
-};
+}
 
 interface CopyRulesDialogProps {
   open: boolean;

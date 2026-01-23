@@ -7,12 +7,12 @@ import { withOutlookRetry } from "@/utils/outlook/retry";
 // Using U+2999 as it is unlikely to appear in normal text
 export const FOLDER_SEPARATOR = " ⦙ ";
 
-export type OutlookFolder = {
+export interface OutlookFolder {
   id: NonNullable<MailFolder["id"]>;
   displayName: NonNullable<MailFolder["displayName"]>;
   childFolders: OutlookFolder[];
   childFolderCount?: number;
-};
+}
 
 function convertMailFolderToOutlookFolder(folder: MailFolder): OutlookFolder {
   return {

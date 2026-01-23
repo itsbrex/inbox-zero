@@ -7,7 +7,9 @@ import {
   oauthStateCookieOptions,
 } from "@/utils/oauth/state";
 
-export type GetCalendarAuthUrlResponse = { url: string };
+export interface GetCalendarAuthUrlResponse {
+  url: string;
+}
 
 const getAuthUrl = ({ emailAccountId }: { emailAccountId: string }) => {
   const state = generateOAuthState({

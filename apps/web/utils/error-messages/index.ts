@@ -6,10 +6,10 @@ const logger = createScopedLogger("error-messages");
 
 // Used to store error messages for a user which we display in the UI
 
-type ErrorMessageEntry = {
+interface ErrorMessageEntry {
   message: string;
   timestamp: string;
-};
+}
 
 type ErrorMessages = Record<string, ErrorMessageEntry>;
 

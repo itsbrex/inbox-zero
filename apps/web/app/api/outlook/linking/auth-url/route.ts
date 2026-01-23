@@ -7,7 +7,9 @@ import {
   oauthStateCookieOptions,
 } from "@/utils/oauth/state";
 
-export type GetOutlookAuthLinkUrlResponse = { url: string };
+export interface GetOutlookAuthLinkUrlResponse {
+  url: string;
+}
 
 const getAuthUrl = ({ userId }: { userId: string }) => {
   const state = generateOAuthState({ userId });

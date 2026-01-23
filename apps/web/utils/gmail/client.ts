@@ -6,12 +6,12 @@ import type { Logger } from "@/utils/logger";
 import { SCOPES } from "@/utils/gmail/scopes";
 import { SafeError } from "@/utils/error";
 
-type AuthOptions = {
+interface AuthOptions {
   accessToken?: string | null;
   refreshToken?: string | null;
   expiryDate?: number | null;
   expiresAt?: number | null;
-};
+}
 
 const getAuth = ({
   accessToken,

@@ -1182,7 +1182,7 @@ export class OutlookProvider implements EmailProvider {
 
     const client = this.client.getClient();
 
-    type GraphMessage = {
+    interface GraphMessage {
       conversationId: string;
       conversationIndex?: string;
       id: string;
@@ -1192,7 +1192,7 @@ export class OutlookProvider implements EmailProvider {
       toRecipients: { emailAddress: { address: string } }[];
       receivedDateTime: string;
       subject: string;
-    };
+    }
 
     let response: { value: GraphMessage[]; "@odata.nextLink"?: string };
 

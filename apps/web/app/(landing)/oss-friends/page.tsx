@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/oss-friends" },
 };
 
-type OSSFriend = {
+interface OSSFriend {
   href: string;
   name: string;
   description: string;
-};
+}
 
 export default async function OSSFriendsPage() {
   try {

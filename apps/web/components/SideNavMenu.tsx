@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 
-type NavItem = {
+interface NavItem {
   name: string;
   href: string;
   icon: LucideIcon | ((props: any) => React.ReactNode);
@@ -19,7 +19,7 @@ type NavItem = {
   active?: boolean;
   beta?: boolean;
   new?: boolean;
-};
+}
 
 export function SideNavMenu({
   items,

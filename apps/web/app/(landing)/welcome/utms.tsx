@@ -6,14 +6,14 @@ import type { auth } from "@/utils/auth";
 
 const logger = createScopedLogger("utms");
 
-type UtmValues = {
+interface UtmValues {
   utmCampaign?: string;
   utmMedium?: string;
   utmSource?: string;
   utmTerm?: string;
   affiliate?: string;
   referralCode?: string;
-};
+}
 
 export function registerUtmTracking({
   authPromise,

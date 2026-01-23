@@ -22,7 +22,7 @@ export const GET = withEmailProvider(
     const emailAccountId = request.auth.emailAccountId;
 
     const url = new URL(request.url);
-    const page = Number.parseInt(url.searchParams.get("page") || "1");
+    const page = Number.parseInt(url.searchParams.get("page") || "1", 10);
     const ruleId = url.searchParams.get("ruleId") || "all";
 
     const result = await getExecutedRules({

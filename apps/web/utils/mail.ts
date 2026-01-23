@@ -65,11 +65,11 @@ function removeForwardedContent(text: string): string {
   return text;
 }
 
-export type EmailToContentOptions = {
+export interface EmailToContentOptions {
   maxLength?: number;
   extractReply?: boolean;
   removeForwarded?: boolean;
-};
+}
 
 export function emailToContent(
   email: Pick<ParsedMessage, "textHtml" | "textPlain" | "snippet">,

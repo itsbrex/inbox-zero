@@ -8,7 +8,9 @@ import {
   oauthStateCookieOptions,
 } from "@/utils/oauth/state";
 
-export type GetAuthLinkUrlResponse = { url: string };
+export interface GetAuthLinkUrlResponse {
+  url: string;
+}
 
 const getAuthUrl = ({ userId }: { userId: string }) => {
   const googleAuth = getLinkingOAuth2Client();

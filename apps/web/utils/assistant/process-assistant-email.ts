@@ -9,13 +9,13 @@ import { internalDateToDate } from "@/utils/date";
 import type { EmailProvider } from "@/utils/email/types";
 import { labelMessageAndSync } from "@/utils/label.server";
 
-type ProcessAssistantEmailArgs = {
+interface ProcessAssistantEmailArgs {
   emailAccountId: string;
   userEmail: string;
   message: ParsedMessage;
   provider: EmailProvider;
   logger: Logger;
-};
+}
 
 export async function processAssistantEmail({
   emailAccountId,

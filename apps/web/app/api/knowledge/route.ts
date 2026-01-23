@@ -3,9 +3,9 @@ import prisma from "@/utils/prisma";
 import { withEmailAccount } from "@/utils/middleware";
 import type { Knowledge } from "@/generated/prisma/client";
 
-export type GetKnowledgeResponse = {
+export interface GetKnowledgeResponse {
   items: Knowledge[];
-};
+}
 
 export const GET = withEmailAccount("knowledge", async (request) => {
   const emailAccountId = request.auth.emailAccountId;

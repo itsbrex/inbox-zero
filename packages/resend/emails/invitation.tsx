@@ -13,13 +13,13 @@ import {
 } from "@react-email/components";
 import type { FC } from "react";
 
-export type InvitationEmailProps = {
+export interface InvitationEmailProps {
   baseUrl: string;
   organizationName: string;
   inviterName: string;
   invitationId: string;
   unsubscribeToken: string;
-};
+}
 
 type InvitationEmailComponent = FC<InvitationEmailProps> & {
   PreviewProps: InvitationEmailProps;

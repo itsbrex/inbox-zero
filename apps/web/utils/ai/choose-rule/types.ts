@@ -3,24 +3,24 @@ import type { Group, GroupItem } from "@/generated/prisma/client";
 import type { ConditionType } from "@/utils/config";
 import type { RuleWithActions } from "@/utils/types";
 
-export type StaticMatch = {
+export interface StaticMatch {
   type: Extract<ConditionType, "STATIC">;
-};
+}
 
-export type LearnedPatternMatch = {
+export interface LearnedPatternMatch {
   type: Extract<ConditionType, "LEARNED_PATTERN">;
   group: Pick<Group, "id" | "name">;
   groupItem: Pick<GroupItem, "id" | "type" | "value" | "exclude">;
-};
+}
 
-export type AiMatch = {
+export interface AiMatch {
   type: Extract<ConditionType, "AI">;
-};
+}
 
-export type PresetMatch = {
+export interface PresetMatch {
   type: Extract<ConditionType, "PRESET">;
   systemType: SystemType;
-};
+}
 
 export type MatchReason =
   | StaticMatch
@@ -28,7 +28,7 @@ export type MatchReason =
   | AiMatch
   | PresetMatch;
 
-export type MatchingRuleResult = {
+export interface MatchingRuleResult {
   matches: {
     rule: RuleWithActions;
     matchReasons: MatchReason[];
@@ -36,7 +36,7 @@ export type MatchingRuleResult = {
   potentialAiMatches: (RuleWithActions & {
     instructions: string;
   })[];
-};
+}
 
 /**
  * Serializable version of MatchReason for database storage

@@ -12,7 +12,7 @@ export const HistoryEventType = {
 export type HistoryEventType =
   (typeof HistoryEventType)[keyof typeof HistoryEventType];
 
-export type ProcessHistoryOptions = {
+export interface ProcessHistoryOptions {
   history: gmail_v1.Schema$History[];
   gmail: gmail_v1.Gmail;
   accessToken: string;
@@ -21,4 +21,4 @@ export type ProcessHistoryOptions = {
   hasAiAccess: boolean;
   emailAccount: Pick<EmailAccount, "autoCategorizeSenders"> &
     EmailAccountWithAI;
-};
+}

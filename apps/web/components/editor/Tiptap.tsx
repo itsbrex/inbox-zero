@@ -7,10 +7,10 @@ import { useCallback, forwardRef, useImperativeHandle } from "react";
 import { cn } from "@/utils";
 import { EnterHandler } from "@/components/editor/extensions";
 
-export type TiptapHandle = {
+export interface TiptapHandle {
   appendContent: (content: string) => void;
   getMarkdown: () => string | null;
-};
+}
 
 export const Tiptap = forwardRef<
   TiptapHandle,

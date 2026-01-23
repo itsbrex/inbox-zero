@@ -14,7 +14,7 @@ export type EmailForAction = Pick<
   | "rawRecipients"
 >;
 
-export type ActionItem = {
+export interface ActionItem {
   id: ExecutedAction["id"];
   type: ExecutedAction["type"];
   label?: ExecutedAction["label"];
@@ -28,4 +28,4 @@ export type ActionItem = {
   folderName?: ExecutedAction["folderName"];
   folderId?: ExecutedAction["folderId"];
   delayInMinutes?: number | null;
-};
+}

@@ -10,17 +10,17 @@ import {
   Text,
 } from "@react-email/components";
 
-export type GuestBriefing = {
+export interface GuestBriefing {
   name: string;
   email: string;
   bullets: string[];
-};
+}
 
-export type BriefingContent = {
+export interface BriefingContent {
   guests: GuestBriefing[];
-};
+}
 
-export type MeetingBriefingEmailProps = {
+export interface MeetingBriefingEmailProps {
   baseUrl: string;
   emailAccountId: string;
   meetingTitle: string;
@@ -29,7 +29,7 @@ export type MeetingBriefingEmailProps = {
   eventUrl: string;
   briefingContent: BriefingContent;
   unsubscribeToken: string;
-};
+}
 
 function renderGuestBriefings(guests: GuestBriefing[]) {
   return guests.map((guest, guestIndex) => (

@@ -17,14 +17,14 @@ export type RuleWithActions = Prisma.RuleGetPayload<{
   include: { actions: true };
 }>;
 
-export type BatchError = {
+export interface BatchError {
   error: {
     code: number;
     message: string;
     errors: any[][];
     status: string;
   };
-};
+}
 
 export function isBatchError(
   message: MessageWithPayload | BatchError,
@@ -32,7 +32,7 @@ export function isBatchError(
   return (message as BatchError).error !== undefined;
 }
 
-export type MessageWithPayload = {
+export interface MessageWithPayload {
   historyId?: string | null;
   id?: string | null;
   internalDate?: string | null;
@@ -42,7 +42,7 @@ export type MessageWithPayload = {
   snippet?: string | null;
   threadId?: string | null;
   payload: gmail_v1.Schema$MessagePart;
-};
+}
 
 export type ThreadWithPayloadMessages = gmail_v1.Schema$Thread & {
   messages: MessageWithPayload[];
@@ -117,7 +117,7 @@ export interface ParsedMessageHeaders {
 }
 
 // Note: use `getEmailForLLM(message)` to convert a `ParsedMessage` to an `EmailForLLM`
-export type EmailForLLM = {
+export interface EmailForLLM {
   id: string;
   from: string;
   to: string;
@@ -131,4 +131,4 @@ export type EmailForLLM = {
     mimeType: string;
     size: number;
   }>;
-};
+}

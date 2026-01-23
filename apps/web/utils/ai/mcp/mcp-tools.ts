@@ -7,10 +7,10 @@ import { createMcpTransport } from "@/utils/mcp/transport";
 
 type MCPClient = Awaited<ReturnType<typeof experimental_createMCPClient>>;
 
-export type MCPToolsResult = {
+export interface MCPToolsResult {
   tools: Record<string, unknown>;
   cleanup: () => Promise<void>;
-};
+}
 
 export async function createMcpToolsForAgent(
   emailAccountId: string,

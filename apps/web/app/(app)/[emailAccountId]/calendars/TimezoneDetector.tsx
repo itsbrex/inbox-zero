@@ -17,11 +17,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { toastSuccess } from "@/components/Toast";
 
-export type DismissedPrompt = {
+export interface DismissedPrompt {
   saved: string;
   detected: string;
   dismissedAt: number; // timestamp
-};
+}
 
 export const DISMISSAL_EXPIRY_DAYS = 30;
 

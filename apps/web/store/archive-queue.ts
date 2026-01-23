@@ -12,16 +12,16 @@ import { useAtomValue } from "jotai";
 
 type ActionType = "archive" | "delete" | "markRead";
 
-type QueueItem = {
+interface QueueItem {
   threadId: string;
   actionType: ActionType;
   labelId?: string;
-};
+}
 
-type QueueState = {
+interface QueueState {
   activeThreads: Record<`${ActionType}-${string}`, QueueItem>;
   totalThreads: number;
-};
+}
 
 // some users were somehow getting null for activeThreads, this should fix it
 const createStorage = () => {

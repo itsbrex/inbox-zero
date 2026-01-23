@@ -12,7 +12,7 @@ import type { Logger } from "@/utils/logger";
 import type { CalendarEvent } from "@/utils/calendar/event-types";
 import { extractDomainFromEmail } from "@/utils/email";
 
-export type EmailAccountForBrief = {
+export interface EmailAccountForBrief {
   id: string;
   userId: string;
   email: string;
@@ -28,7 +28,7 @@ export type EmailAccountForBrief = {
   account: {
     provider: string;
   };
-};
+}
 
 export async function processMeetingBriefings({
   emailAccountId,

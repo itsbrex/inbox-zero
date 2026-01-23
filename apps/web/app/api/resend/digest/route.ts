@@ -23,10 +23,10 @@ import { sleep } from "@/utils/sleep";
 
 export const maxDuration = 60;
 
-type SendEmailResult = {
+interface SendEmailResult {
   success: boolean;
   message: string;
-};
+}
 
 export const GET = withEmailAccount("resend/digest", async (request) => {
   // send to self

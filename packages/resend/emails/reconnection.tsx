@@ -13,11 +13,11 @@ import {
 } from "@react-email/components";
 import type { FC } from "react";
 
-export type ReconnectionEmailProps = {
+export interface ReconnectionEmailProps {
   baseUrl: string;
   email: string;
   unsubscribeToken: string;
-};
+}
 
 type ReconnectionEmailComponent = FC<ReconnectionEmailProps> & {
   PreviewProps: ReconnectionEmailProps;

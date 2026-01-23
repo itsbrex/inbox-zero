@@ -105,11 +105,11 @@ export type ValidatedWebhookAccountData = Awaited<
   ReturnType<typeof getWebhookEmailAccount>
 >;
 
-export type ValidatedWebhookAccount = {
+export interface ValidatedWebhookAccount {
   emailAccount: NonNullable<ValidatedWebhookAccountData>;
   hasAutomationRules: boolean;
   hasAiAccess: boolean;
-};
+}
 
 type ValidationResult =
   | { success: true; data: ValidatedWebhookAccount }

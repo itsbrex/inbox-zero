@@ -24,7 +24,7 @@ export default async function WelcomePage(props: {
   const searchParams = await props.searchParams;
 
   const questionIndex = searchParams.question
-    ? Number.parseInt(searchParams.question)
+    ? Number.parseInt(searchParams.question, 10)
     : 0;
 
   const authPromise = auth();

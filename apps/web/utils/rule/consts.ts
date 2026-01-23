@@ -275,11 +275,11 @@ export function getDefaultActions(
   return actions;
 }
 
-type ActionTypeConfig = {
+interface ActionTypeConfig {
   type: ActionType;
   includeLabel?: boolean;
   includeFolder?: boolean;
-};
+}
 
 export function getActionTypesForCategoryAction({
   categoryAction,

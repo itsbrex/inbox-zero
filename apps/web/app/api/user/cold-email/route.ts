@@ -45,7 +45,7 @@ export const GET = withEmailAccount("user/cold-email", async (request) => {
   const emailAccountId = request.auth.emailAccountId;
 
   const url = new URL(request.url);
-  const page = Number.parseInt(url.searchParams.get("page") || "1");
+  const page = Number.parseInt(url.searchParams.get("page") || "1", 10);
   const status =
     (url.searchParams.get("status") as ColdEmailStatus | undefined) ||
     ColdEmailStatus.AI_LABELED_COLD;

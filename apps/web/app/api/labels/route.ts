@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withEmailProvider } from "@/utils/middleware";
 
-export type UnifiedLabel = {
+export interface UnifiedLabel {
   id: string;
   name: string;
   type: string | null;
@@ -11,11 +11,11 @@ export type UnifiedLabel = {
   };
   labelListVisibility?: string;
   messageListVisibility?: string;
-};
+}
 
-export type LabelsResponse = {
+export interface LabelsResponse {
   labels: UnifiedLabel[];
-};
+}
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;

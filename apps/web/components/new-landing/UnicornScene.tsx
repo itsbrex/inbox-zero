@@ -3,9 +3,9 @@
 import { cn } from "@/utils";
 import { useEffect } from "react";
 
-type UnicornStudioInitFlag = {
+interface UnicornStudioInitFlag {
   isInitialized: boolean;
-};
+}
 
 declare global {
   interface Window {

@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import type { GetEmailAccountsResponse } from "@/app/api/user/email-accounts/route";
 import { setLastEmailAccountAction } from "@/utils/actions/email-account-cookie";
 
-type Context = {
+interface Context {
   emailAccount: GetEmailAccountsResponse["emailAccounts"][number] | undefined;
   emailAccountId: string;
   userEmail: string;
   isLoading: boolean;
   provider: string;
-};
+}
 
 const EmailAccountContext = createContext<Context | undefined>(undefined);
 

@@ -47,7 +47,10 @@ async function getEmailVolumeBuckets({
   toDate,
 }: OrgStatsParams & { organizationId: string }) {
   // Get email count per member using raw SQL for efficiency
-  type MemberEmailCount = { emailAccountId: string; email_count: bigint };
+  interface MemberEmailCount {
+    emailAccountId: string;
+    email_count: bigint;
+  }
 
   // Build date conditions
   const dateConditions: Prisma.Sql[] = [];

@@ -79,7 +79,7 @@ export async function processHistoryForUser(
     const startHistoryId =
       options?.startHistoryId ||
       Math.max(
-        Number.parseInt(emailAccount?.lastSyncedHistoryId || "0"),
+        Number.parseInt(emailAccount?.lastSyncedHistoryId || "0", 10),
         historyId - 500, // avoid going too far back
       ).toString();
 

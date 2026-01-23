@@ -1,7 +1,7 @@
-export type BusyPeriod = {
+export interface BusyPeriod {
   start: string;
   end: string;
-};
+}
 
 export interface CalendarAvailabilityProvider {
   name: "google" | "microsoft";

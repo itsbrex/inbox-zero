@@ -112,23 +112,23 @@ async function getEmailMessages(
   };
 }
 
-type NewsletterCountResult = {
+interface NewsletterCountResult {
   from: string;
   fromName: string | null;
   count: number;
   inboxEmails: number;
   readEmails: number;
   unsubscribeLink: string | null;
-};
+}
 
-type NewsletterCountRawResult = {
+interface NewsletterCountRawResult {
   from: string;
   fromName: string | null;
   count: number;
   inboxEmails: number;
   readEmails: number;
   unsubscribeLink: string | null;
-};
+}
 
 async function getNewsletterCounts(
   options: NewsletterStatsQuery & {

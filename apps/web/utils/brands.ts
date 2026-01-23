@@ -1,8 +1,8 @@
-export type Brand = {
+export interface Brand {
   alt: string;
   src: string;
   height?: string;
-};
+}
 
 const BRANDS = {
   doac: {

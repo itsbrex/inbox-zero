@@ -101,7 +101,7 @@ export function DatePickerWithRange({
                   onSetDateRange(undefined);
                 } else {
                   onSetDateRange({
-                    from: subDays(now, Number.parseInt(value)),
+                    from: subDays(now, Number.parseInt(value, 10)),
                     to: now,
                   });
                 }

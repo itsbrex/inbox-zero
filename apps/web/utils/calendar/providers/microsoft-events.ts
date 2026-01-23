@@ -56,7 +56,7 @@ export class MicrosoftCalendarEventProvider implements CalendarEventProvider {
 
     const events = response.value || [];
 
-    type MicrosoftEvent = {
+    interface MicrosoftEvent {
       id?: string;
       subject?: string;
       start?: { dateTime?: string };
@@ -64,7 +64,7 @@ export class MicrosoftCalendarEventProvider implements CalendarEventProvider {
       attendees?: Array<{
         emailAddress?: { address?: string; name?: string };
       }>;
-    };
+    }
 
     // Filter to events that have this attendee
     return events
@@ -104,7 +104,7 @@ export class MicrosoftCalendarEventProvider implements CalendarEventProvider {
 
     const events = response.value || [];
 
-    type MicrosoftEvent = {
+    interface MicrosoftEvent {
       id?: string;
       subject?: string;
       bodyPreview?: string;
@@ -117,7 +117,7 @@ export class MicrosoftCalendarEventProvider implements CalendarEventProvider {
       webLink?: string;
       onlineMeeting?: { joinUrl?: string };
       onlineMeetingUrl?: string;
-    };
+    }
 
     return events.map((event: MicrosoftEvent) => this.parseEvent(event));
   }

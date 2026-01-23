@@ -10,9 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type Context = {
+interface Context {
   onOpen: () => void;
-};
+}
 
 const ComposeModalContext = createContext<Context>({
   onOpen: async () => {},

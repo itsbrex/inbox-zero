@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 
-type ListItem = {
+interface ListItem {
   label: string;
   value: string;
-};
+}
 
 interface ListProps {
   items: ListItem[];

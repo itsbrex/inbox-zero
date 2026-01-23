@@ -237,11 +237,11 @@ function buildSearchTools({
   return tools;
 }
 
-type WebSearchConfig = {
+interface WebSearchConfig {
   providerName: string;
   useOnlineVariant: boolean;
   getSearchTools?: () => ToolSet;
-};
+}
 
 function getWebSearchConfig(): WebSearchConfig | null {
   switch (env.DEFAULT_LLM_PROVIDER) {
@@ -394,13 +394,13 @@ For each guest listed above:
   return prompt;
 }
 
-type GuestContextForPrompt = {
+interface GuestContextForPrompt {
   email: string;
   name?: string;
   recentEmails: ParsedMessage[];
   recentMeetings: CalendarEvent[];
   timezone: string | null;
-};
+}
 
 function formatGuestContext(guest: GuestContextForPrompt): string {
   const hasEmails = guest.recentEmails.length > 0;

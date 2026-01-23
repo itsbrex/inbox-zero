@@ -41,7 +41,7 @@ import type { Logger } from "@/utils/logger";
 
 const MODULE = "ai/choose-rule";
 
-export type RunRulesResult = {
+export interface RunRulesResult {
   rule?: Pick<
     Rule,
     | "id"
@@ -60,7 +60,7 @@ export type RunRulesResult = {
   matchReasons?: MatchReason[];
   existing?: boolean;
   createdAt: Date;
-};
+}
 
 export const CONVERSATION_TRACKING_META_RULE_ID = "conversation-tracking-meta";
 

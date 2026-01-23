@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useLabels } from "@/hooks/useLabels";
 
-export type GmailLabel = {
+export interface GmailLabel {
   id: string;
   name: string;
   type?: string | null;
@@ -11,7 +11,7 @@ export type GmailLabel = {
     textColor?: string | null;
     backgroundColor?: string | null;
   };
-};
+}
 
 export type GmailLabels = Record<string, GmailLabel>;
 

@@ -14,7 +14,7 @@ import type { RuleWithActions } from "@/utils/types";
 import type { EmailAccountWithAI } from "@/utils/llms/types";
 import type { Logger } from "@/utils/logger";
 
-export type SharedProcessHistoryOptions = {
+export interface SharedProcessHistoryOptions {
   provider: EmailProvider;
   rules: RuleWithActions[];
   hasAutomationRules: boolean;
@@ -22,7 +22,7 @@ export type SharedProcessHistoryOptions = {
   emailAccount: EmailAccountWithAI &
     Pick<EmailAccount, "autoCategorizeSenders">;
   logger: Logger;
-};
+}
 
 export async function processHistoryItem(
   {

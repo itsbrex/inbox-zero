@@ -85,7 +85,7 @@ function decodeHistoryId(body: { message?: { data?: string } }) {
   // seem to get this in different formats? so unifying as number
   const historyId =
     typeof decodedData.historyId === "string"
-      ? Number.parseInt(decodedData.historyId)
+      ? Number.parseInt(decodedData.historyId, 10)
       : decodedData.historyId;
 
   return { emailAddress: decodedData.emailAddress, historyId };

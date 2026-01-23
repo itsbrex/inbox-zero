@@ -3,25 +3,25 @@ import type { EmailForLLM } from "@/utils/types";
 import { ActionType, LogicalOperator } from "@/generated/prisma/enums";
 import type { Action, Prisma } from "@/generated/prisma/client";
 
-type EmailAccountSelect = {
+interface EmailAccountSelect {
   id: string;
   email: string;
   accountId: string;
   userId?: string;
   name?: string | null;
-};
+}
 
-type UserSelect = {
+interface UserSelect {
   email: string;
   id?: string;
   name?: string | null;
-};
+}
 
-type AccountWithEmailAccount = {
+interface AccountWithEmailAccount {
   id: string;
   userId: string;
   emailAccount?: { id: string } | null;
-};
+}
 
 export function getEmailAccount(
   overrides: Partial<EmailAccountWithAI> = {},

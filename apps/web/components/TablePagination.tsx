@@ -11,7 +11,7 @@ import {
 
 export function TablePagination({ totalPages }: { totalPages: number }) {
   const searchParams = useSearchParams();
-  const page = Number.parseInt(searchParams.get("page") || "1");
+  const page = Number.parseInt(searchParams.get("page") || "1", 10);
   const hrefForPage = useCallback(
     (value: number) => {
       const params = new URLSearchParams(searchParams);

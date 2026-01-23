@@ -22,11 +22,11 @@ import { testColdEmailAction } from "@/utils/actions/cold-email";
 import type { ColdEmailBlockerBody } from "@/utils/actions/cold-email.validation";
 import { useAccount } from "@/providers/EmailAccountProvider";
 
-type ColdEmailBlockerResponse = {
+interface ColdEmailBlockerResponse {
   isColdEmail: boolean;
   aiReason?: string | null;
   reason?: string | null;
-};
+}
 
 export function TestRulesContent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,7 +74,9 @@ export function TestRulesContent() {
   );
 }
 
-type TestRulesInputs = { message: string };
+interface TestRulesInputs {
+  message: string;
+}
 
 const TestRulesForm = () => {
   const { response, testEmail } = useColdEmailTest();

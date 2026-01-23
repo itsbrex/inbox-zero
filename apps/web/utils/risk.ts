@@ -12,14 +12,14 @@ const RISK_LEVELS = {
 
 export type RiskLevel = (typeof RISK_LEVELS)[keyof typeof RISK_LEVELS];
 
-export type RiskAction = {
+export interface RiskAction {
   type: ActionType;
   subject: string | null;
   content: string | null;
   to: string | null;
   cc: string | null;
   bcc: string | null;
-};
+}
 
 export function getActionRiskLevel(
   action: RiskAction,

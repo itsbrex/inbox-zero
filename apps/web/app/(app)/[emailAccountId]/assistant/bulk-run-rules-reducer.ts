@@ -4,7 +4,7 @@ type Thread = ThreadsResponse["threads"][number];
 
 export type ProcessingStatus = "idle" | "processing" | "paused" | "stopped";
 
-export type BulkRunState = {
+export interface BulkRunState {
   status: ProcessingStatus;
   processedThreadIds: Set<string>;
   // Stores fetched threads to ensure activity log can find them
@@ -12,7 +12,7 @@ export type BulkRunState = {
   fetchedThreads: Map<string, Thread>;
   stoppedCount: number | null;
   runResult: { count: number } | null;
-};
+}
 
 export type BulkRunAction =
   | { type: "START" }

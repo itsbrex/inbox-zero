@@ -136,13 +136,13 @@ export function getEmptyCondition(type: CoreConditionType): ZodCondition {
   }
 }
 
-type FlattenedConditions = {
+interface FlattenedConditions {
   instructions?: string | null;
   from?: string | null;
   to?: string | null;
   subject?: string | null;
   body?: string | null;
-};
+}
 
 export const flattenConditions = (
   conditions: ZodCondition[],

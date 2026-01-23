@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { withEmailProvider } from "@/utils/middleware";
 import type { ThreadsResponse } from "@/app/api/threads/route";
 
-export type ThreadsBatchResponse = {
+export interface ThreadsBatchResponse {
   threads: ThreadsResponse["threads"];
-};
+}
 
 export const dynamic = "force-dynamic";
 

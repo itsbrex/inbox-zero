@@ -5,11 +5,11 @@ import { CALENDAR_SCOPES as GOOGLE_CALENDAR_SCOPES } from "@/utils/gmail/scopes"
 import { SafeError } from "@/utils/error";
 import prisma from "@/utils/prisma";
 
-type AuthOptions = {
+interface AuthOptions {
   accessToken?: string | null;
   refreshToken?: string | null;
   expiresAt?: number | null;
-};
+}
 
 const getAuth = ({ accessToken, refreshToken, expiresAt }: AuthOptions) => {
   const googleAuth = new auth.OAuth2({

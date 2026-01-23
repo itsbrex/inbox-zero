@@ -12,14 +12,14 @@ import {
 import { cn } from "@/utils";
 import Image from "next/image";
 
-type Award = {
+interface Award {
   title: string;
   description: string;
   image: string;
   imageSize?: number;
   top?: string;
   hideOnMobile?: boolean;
-};
+}
 
 const awards: Award[] = [
   {

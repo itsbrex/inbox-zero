@@ -58,11 +58,11 @@ import { useAccount } from "@/providers/EmailAccountProvider";
 
 const COLUMNS = 4;
 
-type EmailGroup = {
+interface EmailGroup {
   address: string;
   category: CategoryWithRules | null;
   meta?: { width?: string };
-};
+}
 
 export function GroupedTable({
   emailGroups,

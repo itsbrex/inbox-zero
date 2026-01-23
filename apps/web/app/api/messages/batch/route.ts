@@ -4,9 +4,9 @@ import { messagesBatchQuery } from "@/app/api/messages/validation";
 import { parseReply } from "@/utils/mail";
 import type { EmailProvider } from "@/utils/email/types";
 
-export type MessagesBatchResponse = {
+export interface MessagesBatchResponse {
   messages: Awaited<ReturnType<typeof getMessagesBatch>>;
-};
+}
 
 async function getMessagesBatch({
   messageIds,

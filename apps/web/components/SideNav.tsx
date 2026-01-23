@@ -66,7 +66,7 @@ import { NavUser } from "@/components/NavUser";
 import { PremiumCard } from "@/components/PremiumCard";
 import { env } from "@/env";
 
-type NavItem = {
+interface NavItem {
   name: string;
   href: string;
   icon: LucideIcon | (() => React.ReactNode);
@@ -75,7 +75,7 @@ type NavItem = {
   hideInMail?: boolean;
   beta?: boolean;
   new?: boolean;
-};
+}
 
 export const useNavigation = () => {
   const showCleaner = useCleanerEnabled();

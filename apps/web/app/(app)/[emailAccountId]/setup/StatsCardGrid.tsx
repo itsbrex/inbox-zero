@@ -39,7 +39,7 @@ const variants = {
 
 export type StatVariant = keyof typeof variants;
 
-export type StatItem = {
+export interface StatItem {
   icon: LucideIcon;
   value: string | number;
   title: string;
@@ -47,7 +47,7 @@ export type StatItem = {
   variant?: StatVariant;
   iconBg?: string;
   iconColor?: string;
-};
+}
 
 export function StatsCardGrid() {
   const emailsProcessed = 0;

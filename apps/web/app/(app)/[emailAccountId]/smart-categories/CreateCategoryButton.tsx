@@ -23,10 +23,10 @@ import type { Category } from "@/generated/prisma/client";
 import { MessageText } from "@/components/Typography";
 import { useAccount } from "@/providers/EmailAccountProvider";
 
-type ExampleCategory = {
+interface ExampleCategory {
   name: string;
   description: string;
-};
+}
 
 const EXAMPLE_CATEGORIES: ExampleCategory[] = [
   {

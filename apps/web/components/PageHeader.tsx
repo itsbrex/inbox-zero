@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { PlayIcon } from "lucide-react";
 
-type Video = {
+interface Video {
   title: string;
   description: React.ReactNode;
   youtubeVideoId?: string;
   muxPlaybackId?: string;
-};
+}
 
 interface PageHeaderProps {
   title: string;

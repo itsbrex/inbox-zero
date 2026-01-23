@@ -12,7 +12,7 @@ import { isError } from "@/utils/error";
 import { loadEmailStatsAction } from "@/utils/actions/stats";
 import { useAccount } from "@/providers/EmailAccountProvider";
 
-type Context = {
+interface Context {
   isLoading: boolean;
   onLoad: (options: {
     loadBefore: boolean;
@@ -23,7 +23,7 @@ type Context = {
     showToast: boolean;
   }) => Promise<void>;
   onCancelLoadBatch: () => void;
-};
+}
 
 const StatLoaderContext = createContext<Context>({
   isLoading: false,

@@ -14,7 +14,7 @@ import {
 } from "@/components/new-landing/common/Typography";
 import { userCount } from "@/utils/config";
 
-type Testimonial = {
+interface Testimonial {
   body: string;
   author: {
     name: string;
@@ -22,7 +22,7 @@ type Testimonial = {
     imageUrl: string;
     logoUrl?: string;
   };
-};
+}
 
 const featuredTestimonial = {
   body: "Loving it so far! Cleaned up my top cluttering newsletter and promotional email subscriptions in just a few minutes.",

@@ -10,10 +10,10 @@ const getSsoSignInSchema = z.object({
   organizationSlug: z.string(),
 });
 export type GetSsoSignInParams = z.infer<typeof getSsoSignInSchema>;
-export type GetSsoSignInResponse = {
+export interface GetSsoSignInResponse {
   redirectUrl: string;
   providerId: string;
-};
+}
 
 export const GET = withError("sso/signin", async (request) => {
   const { searchParams } = new URL(request.url);

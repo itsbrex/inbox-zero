@@ -7,13 +7,13 @@ import type { BatchExecutedRulesResponse } from "@/app/api/user/executed-rules/b
 import type { ThreadsResponse } from "@/app/api/threads/route";
 import { Badge } from "@/components/Badge";
 
-export type ActivityLogEntry = {
+export interface ActivityLogEntry {
   id: string;
   from: string;
   subject: string;
   status: "processing" | "completed" | "waiting";
   ruleName?: string;
-};
+}
 
 export function ActivityLog({
   entries,
@@ -104,7 +104,7 @@ function ActivityLogRow({
 // Smart Component - Data fetching and state management
 // =============================================================================
 
-type InternalActivityLogEntry = {
+interface InternalActivityLogEntry {
   threadId: string;
   messageId: string;
   from: string;
@@ -112,7 +112,7 @@ type InternalActivityLogEntry = {
   status: "processing" | "completed";
   ruleName?: string;
   timestamp: number;
-};
+}
 
 export function BulkProcessActivityLog({
   threads,

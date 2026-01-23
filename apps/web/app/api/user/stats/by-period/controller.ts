@@ -23,7 +23,7 @@ async function getEmailStatsByPeriod(
   }
 
   // Using raw query with properly typed parameters
-  type StatsResult = {
+  interface StatsResult {
     startOfPeriod: Date;
     totalCount: bigint;
     inboxCount: bigint;
@@ -31,7 +31,7 @@ async function getEmailStatsByPeriod(
     sentCount: bigint;
     unread: bigint;
     notInbox: bigint;
-  };
+  }
 
   // Create WHERE clause properly
   const whereClause = Prisma.sql`WHERE "emailAccountId" = ${emailAccountId}`;

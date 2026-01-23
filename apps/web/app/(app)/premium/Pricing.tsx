@@ -30,11 +30,11 @@ import { cn } from "@/utils";
 import { ManageSubscription } from "@/app/(app)/premium/ManageSubscription";
 import { captureException } from "@/utils/error";
 
-export type PricingProps = {
+export interface PricingProps {
   header?: React.ReactNode;
   showSkipUpgrade?: boolean;
   className?: string;
-};
+}
 
 export default function Pricing(props: PricingProps) {
   const { premium, isLoading, error, data } = usePremium();

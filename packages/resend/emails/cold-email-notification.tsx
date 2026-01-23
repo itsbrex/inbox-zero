@@ -12,9 +12,9 @@ import {
 } from "@react-email/components";
 import type { FC } from "react";
 
-export type ColdEmailNotificationProps = {
+export interface ColdEmailNotificationProps {
   baseUrl: string;
-};
+}
 
 type ColdEmailNotificationComponent = FC<ColdEmailNotificationProps> & {
   PreviewProps: ColdEmailNotificationProps;

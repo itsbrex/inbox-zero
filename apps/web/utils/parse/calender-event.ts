@@ -11,10 +11,10 @@ interface CalendarEventInfo {
   organizer?: string;
 }
 
-export type CalendarEventStatus = {
+export interface CalendarEventStatus {
   isEvent: boolean;
   timing?: "past" | "future";
-};
+}
 
 /**
  * Checks if an email is a calendar event and extracts event date information
@@ -119,12 +119,12 @@ export function analyzeCalendarEvent(email: ParsedMessage): CalendarEventInfo {
     if (dtStartMatch) {
       const [_, year, month, day, hour, minute, second] = dtStartMatch;
       result.startDate = new Date(
-        Number.parseInt(year),
-        Number.parseInt(month) - 1, // JavaScript months are 0-indexed
-        Number.parseInt(day),
-        Number.parseInt(hour),
-        Number.parseInt(minute),
-        Number.parseInt(second),
+        Number.parseInt(year, 10),
+        Number.parseInt(month, 10) - 1, // JavaScript months are 0-indexed
+        Number.parseInt(day, 10),
+        Number.parseInt(hour, 10),
+        Number.parseInt(minute, 10),
+        Number.parseInt(second, 10),
       );
 
       // Also look for end date
@@ -135,12 +135,12 @@ export function analyzeCalendarEvent(email: ParsedMessage): CalendarEventInfo {
         const [_, yearEnd, monthEnd, dayEnd, hourEnd, minuteEnd, secondEnd] =
           dtEndMatch;
         result.endDate = new Date(
-          Number.parseInt(yearEnd),
-          Number.parseInt(monthEnd) - 1,
-          Number.parseInt(dayEnd),
-          Number.parseInt(hourEnd),
-          Number.parseInt(minuteEnd),
-          Number.parseInt(secondEnd),
+          Number.parseInt(yearEnd, 10),
+          Number.parseInt(monthEnd, 10) - 1,
+          Number.parseInt(dayEnd, 10),
+          Number.parseInt(hourEnd, 10),
+          Number.parseInt(minuteEnd, 10),
+          Number.parseInt(secondEnd, 10),
         );
       }
 
@@ -188,10 +188,10 @@ export function analyzeCalendarEvent(email: ParsedMessage): CalendarEventInfo {
 
       // Year might not be in the match, use current year as fallback
       const year = dateMatch[3]
-        ? Number.parseInt(dateMatch[3])
+        ? Number.parseInt(dateMatch[3], 10)
         : new Date().getFullYear();
 
-      result.eventDate = new Date(year, month, Number.parseInt(day));
+      result.eventDate = new Date(year, month, Number.parseInt(day, 10));
       result.eventDateString = `${year}-${(month + 1).toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
     }
 
@@ -203,7 +203,7 @@ export function analyzeCalendarEvent(email: ParsedMessage): CalendarEventInfo {
       const weeklyMatch = body.match(weeklyPattern);
 
       if (weeklyMatch) {
-        const day = Number.parseInt(weeklyMatch[1]);
+        const day = Number.parseInt(weeklyMatch[1], 10);
         const monthText = weeklyMatch[2];
         const monthMap: { [key: string]: number } = {
           Jan: 0,

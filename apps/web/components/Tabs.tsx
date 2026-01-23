@@ -46,7 +46,7 @@ export function Tabs(props: TabsProps) {
             const tab = tabs.find((t) => t.label === label);
             if (tab) {
               onClickTab?.(tab);
-              // @ts-ignore
+              // @ts-expect-error
               if (tab.href) router.push(tab.href);
             }
           }}
@@ -72,7 +72,7 @@ export function Tabs(props: TabsProps) {
             return (
               <Link
                 key={tab.value}
-                // @ts-ignore
+                // @ts-expect-error
                 href={tab.href || "#"}
                 className={clsx(
                   "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium",

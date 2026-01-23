@@ -36,11 +36,11 @@ async function getTotals({
   fromDate,
   toDate,
 }: OrgStatsParams & { organizationId: string }) {
-  type TotalsResult = {
+  interface TotalsResult {
     total_emails: bigint;
     total_rules: bigint;
     active_members: bigint;
-  };
+  }
 
   // Build date conditions for emails
   const emailDateConditions: Prisma.Sql[] = [];

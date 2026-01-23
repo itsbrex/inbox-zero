@@ -9,7 +9,7 @@ import {
   isMicrosoftProvider,
 } from "@/utils/email/provider-types";
 
-export type EmailLabel = {
+export interface EmailLabel {
   id: string;
   name: string;
   type?: string | null;
@@ -19,7 +19,7 @@ export type EmailLabel = {
   };
   labelListVisibility?: string;
   messageListVisibility?: string;
-};
+}
 
 export type EmailLabels = Record<string, EmailLabel>;
 

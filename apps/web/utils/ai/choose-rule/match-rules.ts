@@ -36,13 +36,13 @@ const MODULE = "match-rules";
 
 const TO_REPLY_RECEIVED_THRESHOLD = 10;
 
-type MatchingRulesResult = {
+interface MatchingRulesResult {
   matches: {
     rule: RuleWithActions;
     matchReasons?: MatchReason[];
   }[];
   reasoning: string;
-};
+}
 
 export async function findMatchingRules({
   rules,

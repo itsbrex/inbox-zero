@@ -12,10 +12,10 @@ import { Loading } from "@/components/Loading";
 import type { CreateRuleResult } from "@/utils/rule/types";
 import { CreatedRulesContent } from "@/app/(app)/[emailAccountId]/assistant/CreatedRulesModal";
 
-type StepProps = {
+interface StepProps {
   back?: () => void;
   next?: () => void;
-};
+}
 
 type StepContentProps = StepProps & {
   title: string;

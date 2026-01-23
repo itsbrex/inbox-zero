@@ -5,7 +5,7 @@ import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("redis/usage");
 
-export type RedisUsage = {
+export interface RedisUsage {
   openaiCalls?: number;
   openaiTokensUsed?: number;
   openaiCompletionTokensUsed?: number;
@@ -13,7 +13,7 @@ export type RedisUsage = {
   cachedInputTokensUsed?: number;
   reasoningTokensUsed?: number;
   cost?: number;
-};
+}
 
 function getUsageKey(email: string) {
   return `usage:${email}`;

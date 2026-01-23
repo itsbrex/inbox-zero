@@ -309,13 +309,13 @@ export const adminChangePremiumStatusAction = adminActionClient
             (i) => i.type === "subscriptions",
           );
           if (!subscription) throw new SafeError("Subscription not found");
-          lemonSqueezySubscriptionId = Number.parseInt(subscription.id);
+          lemonSqueezySubscriptionId = Number.parseInt(subscription.id, 10);
           const attributes = subscription.attributes as any;
-          lemonSqueezyOrderId = Number.parseInt(attributes.order_id);
-          lemonSqueezyProductId = Number.parseInt(attributes.product_id);
-          lemonSqueezyVariantId = Number.parseInt(attributes.variant_id);
+          lemonSqueezyOrderId = Number.parseInt(attributes.order_id, 10);
+          lemonSqueezyProductId = Number.parseInt(attributes.product_id, 10);
+          lemonSqueezyVariantId = Number.parseInt(attributes.variant_id, 10);
           lemonSqueezySubscriptionItemId = attributes.first_subscription_item.id
-            ? Number.parseInt(attributes.first_subscription_item.id)
+            ? Number.parseInt(attributes.first_subscription_item.id, 10)
             : null;
         }
 

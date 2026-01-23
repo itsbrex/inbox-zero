@@ -69,10 +69,10 @@ const GMAIL_LABEL_MAX_LENGTH = 225;
 /**
  * Result of label validation
  */
-type LabelValidationResult = {
+interface LabelValidationResult {
   valid: boolean;
   error?: string;
-};
+}
 
 /**
  * Validates basic label name requirements

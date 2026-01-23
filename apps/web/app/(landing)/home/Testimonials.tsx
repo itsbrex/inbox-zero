@@ -5,14 +5,14 @@ import Image from "next/image";
 import Script from "next/script";
 import { useTestimonialsVariant } from "@/hooks/useFeatureFlags";
 
-type Testimonial = {
+interface Testimonial {
   body: string;
   author: {
     name: string;
     handle: string;
     imageUrl: string;
   };
-};
+}
 
 const featuredTestimonial = {
   body: "Loving it so far! Cleaned up my top cluttering newsletter and promotional email subscriptions in just a few minutes.",

@@ -26,7 +26,7 @@ const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
-type SidebarContext = {
+interface SidebarContext {
   state: string[];
   open: string[];
   setOpen: React.Dispatch<React.SetStateAction<string[]>>;
@@ -34,7 +34,7 @@ type SidebarContext = {
   setOpenMobile: React.Dispatch<React.SetStateAction<string[]>>;
   isMobile: boolean;
   toggleSidebar: (names: string[]) => void;
-};
+}
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
 

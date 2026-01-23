@@ -1,9 +1,12 @@
 import { env } from "@/env";
 import type { PremiumTier } from "@/generated/prisma/enums";
 
-type Feature = { text: string; tooltip?: string };
+interface Feature {
+  text: string;
+  tooltip?: string;
+}
 
-export type Tier = {
+export interface Tier {
   name: string;
   tiers: { monthly: PremiumTier; annually: PremiumTier };
   price: { monthly: number; annually: number };
@@ -14,7 +17,7 @@ export type Tier = {
   cta: string;
   ctaLink?: string;
   mostPopular?: boolean;
-};
+}
 
 const pricing: Record<PremiumTier, number> = {
   BASIC_MONTHLY: 16,

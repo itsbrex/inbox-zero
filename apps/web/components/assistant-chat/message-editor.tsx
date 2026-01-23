@@ -13,12 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ChatMessage } from "@/components/assistant-chat/types";
 // import { deleteTrailingMessages } from "@/app/(app)/assistant/chat/actions";
 
-type MessageEditorProps = {
+interface MessageEditorProps {
   message: ChatMessage;
   setMode: Dispatch<SetStateAction<"view" | "edit">>;
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
-};
+}
 
 export function MessageEditor({
   message,

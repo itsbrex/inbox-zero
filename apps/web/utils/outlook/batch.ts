@@ -8,24 +8,24 @@ import {
 
 const GRAPH_JSON_BATCH_LIMIT = 20; // Microsoft Graph JSON batching limit
 
-type GraphBatchRequestItem<TBody = unknown> = {
+interface GraphBatchRequestItem<TBody = unknown> {
   id: string;
   method: string;
   url: string;
   headers?: Record<string, string>;
   body?: TBody;
-};
+}
 
-type GraphBatchResponseItem<TBody = unknown> = {
+interface GraphBatchResponseItem<TBody = unknown> {
   id: string;
   status: number;
   headers?: Record<string, string>;
   body?: TBody | null;
-};
+}
 
-type GraphBatchResponse<TBody = unknown> = {
+interface GraphBatchResponse<TBody = unknown> {
   responses?: GraphBatchResponseItem<TBody>[];
-};
+}
 
 async function batch<TRequestBody = unknown, TResponseBody = unknown>({
   client,

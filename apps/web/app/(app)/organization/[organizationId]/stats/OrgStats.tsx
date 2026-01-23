@@ -27,7 +27,7 @@ export function OrgStats({ organizationId }: { organizationId: string }) {
 
   const now = useMemo(() => new Date(), []);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(now, Number.parseInt(defaultSelected.value)),
+    from: subDays(now, Number.parseInt(defaultSelected.value, 10)),
     to: now,
   });
 

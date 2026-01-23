@@ -36,13 +36,13 @@ import { getUserInfoPrompt } from "@/utils/ai/helpers";
  * not for choosing which rule to apply.
  */
 
-export type ActionArgResponse = {
+export interface ActionArgResponse {
   [key: `${string}-${string}`]: {
     [field: string]: {
       [key: `var${number}`]: string;
     };
   };
-};
+}
 
 export async function aiGenerateArgs({
   email,

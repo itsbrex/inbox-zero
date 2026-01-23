@@ -5,15 +5,18 @@ import {
 import { APICallError, RetryError } from "ai";
 import { createScopedLogger, type Logger } from "@/utils/logger";
 
-export type ErrorMessage = { error: string; data?: any };
-export type ZodError = {
+export interface ErrorMessage {
+  error: string;
+  data?: any;
+}
+export interface ZodError {
   error: { issues: { code: string; message: string }[] };
-};
-export type ApiErrorType = {
+}
+export interface ApiErrorType {
   type: string;
   message?: string;
   code: number;
-};
+}
 
 export function isError(value: any): value is ErrorMessage | ZodError {
   return value?.error;
@@ -30,7 +33,7 @@ export function isGmailError(
   );
 }
 
-export type CaptureExceptionContext = {
+export interface CaptureExceptionContext {
   // emailAccountId is set automatically via:
   // - Frontend: SentryIdentify component
   // - API routes: emailAccountMiddleware
@@ -41,7 +44,7 @@ export type CaptureExceptionContext = {
   userEmail?: string;
   extra?: Record<string, any>;
   sampleRate?: number;
-};
+}
 
 export function captureException(
   error: unknown,

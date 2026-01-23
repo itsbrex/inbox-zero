@@ -12,11 +12,11 @@ import {
   Text,
 } from "@react-email/components";
 
-type DigestItem = {
+interface DigestItem {
   from: string;
   subject: string;
   content: string;
-};
+}
 
 const colorClasses = {
   blue: {
@@ -63,13 +63,13 @@ const colorClasses = {
   },
 } as const;
 
-type NormalizedCategoryData = {
+interface NormalizedCategoryData {
   count: number;
   senders: string[];
   items: DigestItem[];
-};
+}
 
-export type DigestEmailProps = {
+export interface DigestEmailProps {
   baseUrl: string;
   unsubscribeToken: string;
   date?: Date;
@@ -83,7 +83,7 @@ export type DigestEmailProps = {
     | Date
     | Record<string, string>
     | undefined;
-};
+}
 export default function DigestEmail(props: DigestEmailProps) {
   const {
     baseUrl = "https://www.getinboxzero.com",

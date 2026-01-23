@@ -23,13 +23,13 @@ interface TrendEntry {
   count: number;
 }
 
-export type ResponseTimeResponse = {
+export interface ResponseTimeResponse {
   summary: SummaryStats;
   distribution: DistributionStats;
   trend: TrendEntry[];
   emailsAnalyzed: number;
   maxEmailsCap: number;
-};
+}
 
 export async function getResponseTimeStats({
   fromDate,

@@ -49,7 +49,7 @@ export default async function CleanPage(props: {
 
   const searchParams = await props.searchParams;
   const step = searchParams.step
-    ? Number.parseInt(searchParams.step)
+    ? Number.parseInt(searchParams.step, 10)
     : CleanStep.INTRO;
 
   const renderStepContent = () => {
@@ -70,7 +70,7 @@ export default async function CleanPage(props: {
             action={searchParams.action ?? CleanAction.ARCHIVE}
             timeRange={
               searchParams.timeRange
-                ? Number.parseInt(searchParams.timeRange)
+                ? Number.parseInt(searchParams.timeRange, 10)
                 : 7
             }
             instructions={searchParams.instructions}

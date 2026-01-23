@@ -11,9 +11,9 @@ import {
   oneLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-type CodeBlockContextType = {
+interface CodeBlockContextType {
   code: string;
-};
+}
 
 const CodeBlockContext = createContext<CodeBlockContextType>({
   code: "",

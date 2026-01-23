@@ -47,7 +47,10 @@ async function getExecutedRulesBuckets({
   toDate,
 }: OrgStatsParams & { organizationId: string }) {
   // Get executed rules count per member
-  type MemberRulesCount = { emailAccountId: string; rules_count: bigint };
+  interface MemberRulesCount {
+    emailAccountId: string;
+    rules_count: bigint;
+  }
 
   // Build date conditions
   const dateConditions: Prisma.Sql[] = [];

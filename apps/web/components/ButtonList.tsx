@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/Input";
 import { cn } from "@/utils";
 
-type ButtonListItem = {
+interface ButtonListItem {
   id: string;
   name: string;
-};
+}
 
 interface ButtonListProps {
   title?: string;

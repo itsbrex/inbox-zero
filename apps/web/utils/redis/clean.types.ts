@@ -1,4 +1,4 @@
-export type CleanThread = {
+export interface CleanThread {
   emailAccountId: string;
   threadId: string;
   jobId: string;
@@ -12,4 +12,4 @@ export type CleanThread = {
   archive?: boolean;
   label?: string;
   undone?: boolean;
-};
+}

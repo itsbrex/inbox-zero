@@ -3,7 +3,7 @@ import useSWR from "swr";
 import type { LabelsResponse } from "@/app/api/labels/route";
 import type { EmailLabel } from "@/providers/EmailProvider";
 
-export type UserLabel = {
+export interface UserLabel {
   id: string;
   name: string;
   type: "user";
@@ -13,18 +13,18 @@ export type UserLabel = {
     textColor?: string | null;
     backgroundColor?: string | null;
   };
-};
+}
 
-export type OutlookLabel = {
+export interface OutlookLabel {
   id: string;
   name: string;
   type: "user";
   color?: string;
-};
+}
 
 export type GenericLabel = UserLabel | OutlookLabel;
 
-type SortableLabel = {
+interface SortableLabel {
   id: string | null | undefined;
   name: string | null | undefined;
   type: string | null;
@@ -32,7 +32,7 @@ type SortableLabel = {
     textColor?: string | null;
     backgroundColor?: string | null;
   };
-};
+}
 
 function isHidden(label: EmailLabel): boolean {
   return label.labelListVisibility === "labelHide";

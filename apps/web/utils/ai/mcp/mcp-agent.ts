@@ -9,19 +9,19 @@ import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("mcp-agent");
 
-type McpAgentOptions = {
+interface McpAgentOptions {
   emailAccount: EmailAccountWithAI;
   messages: EmailForLLM[];
-};
+}
 
-type McpAgentResponse = {
+interface McpAgentResponse {
   response: string | null;
   getToolCalls: () => Array<{
     toolName: string;
     arguments: Record<string, unknown>;
     result: string;
   }>;
-};
+}
 
 const NO_RELEVANT_INFO_FOUND = "NO_RELEVANT_INFO_FOUND";
 

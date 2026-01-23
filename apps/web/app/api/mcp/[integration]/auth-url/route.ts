@@ -12,7 +12,9 @@ import { getIntegration } from "@/utils/mcp/integrations";
 import { generateOAuthState } from "@/utils/oauth/state";
 import { generateOAuthUrl } from "@/utils/mcp/oauth";
 
-export type GetMcpAuthUrlResponse = { url: string };
+export interface GetMcpAuthUrlResponse {
+  url: string;
+}
 
 export const GET = withEmailAccount(
   "mcp/auth-url",

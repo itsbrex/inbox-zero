@@ -16,13 +16,13 @@ vi.mock("@/utils/gmail/client");
 vi.mock("server-only", () => ({}));
 
 // Create a type that matches what our test expects to be returned from prisma.apiKey.findUnique
-type MockApiKeyResult = {
+interface MockApiKeyResult {
   user: {
     id: string;
     accounts: Array<any>;
   };
   isActive: boolean;
-};
+}
 
 describe("api-auth", () => {
   beforeEach(() => {

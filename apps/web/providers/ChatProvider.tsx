@@ -22,7 +22,7 @@ import type { MessageContext } from "@/app/api/chat/validation";
 
 export type Chat = ReturnType<typeof useAiChat<ChatMessage>>;
 
-type ChatContextType = {
+interface ChatContextType {
   chat: Chat;
   input: string;
   chatId: string | null;
@@ -32,7 +32,7 @@ type ChatContextType = {
   handleSubmit: () => void;
   context: MessageContext | null;
   setContext: (context: MessageContext | null) => void;
-};
+}
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 

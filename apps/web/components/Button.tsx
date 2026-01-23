@@ -104,7 +104,7 @@ const BasicLink = (props: {
   } = props;
 
   return (
-    // @ts-ignore
+    // @ts-expect-error
     <Link href={href} target={target} rel={rel} {...rest}>
       {children}
     </Link>

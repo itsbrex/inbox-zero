@@ -15,11 +15,11 @@ import {
   Column,
 } from "@react-email/components";
 
-type EmailItem = {
+interface EmailItem {
   from: string;
   subject: string;
   sentAt: Date;
-};
+}
 
 export interface SummaryEmailProps {
   baseUrl: string;

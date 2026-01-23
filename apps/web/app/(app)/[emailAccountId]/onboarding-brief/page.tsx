@@ -20,7 +20,9 @@ export default async function MeetingBriefsOnboardingPage(props: {
     props.searchParams,
     cookies(),
   ]);
-  const parsedStep = searchParams.step ? Number.parseInt(searchParams.step) : 1;
+  const parsedStep = searchParams.step
+    ? Number.parseInt(searchParams.step, 10)
+    : 1;
   const step = Number.isNaN(parsedStep) ? 1 : parsedStep;
 
   registerUtmTracking({

@@ -16,13 +16,13 @@ const logger = createScopedLogger("llms/model");
 
 export type ModelType = "default" | "economy" | "chat";
 
-export type SelectModel = {
+export interface SelectModel {
   provider: string;
   modelName: string;
   model: LanguageModelV2;
   providerOptions?: Record<string, any>;
   backupModel: LanguageModelV2 | null;
-};
+}
 
 export function getModel(
   userAi: UserAIFields,

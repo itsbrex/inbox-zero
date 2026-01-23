@@ -1,10 +1,10 @@
 import type { Logger } from "@/utils/logger";
 
-export type SubscriptionHistoryEntry = {
+export interface SubscriptionHistoryEntry {
   subscriptionId: string;
   createdAt: string;
   replacedAt: string;
-};
+}
 
 export type SubscriptionHistory = SubscriptionHistoryEntry[];
 

@@ -3,13 +3,13 @@ import type { NewsletterStatus } from "@/generated/prisma/enums";
 import type { EmailLabel } from "@/providers/EmailProvider";
 import type { UserResponse } from "@/app/api/user/me/route";
 
-export type Row = {
+export interface Row {
   name: string;
   fromName?: string;
   unsubscribeLink?: string | null;
   status?: NewsletterStatus | null;
   autoArchived?: { id?: string | null };
-};
+}
 
 type Newsletter = NewsletterStatsResponse["newsletters"][number];
 

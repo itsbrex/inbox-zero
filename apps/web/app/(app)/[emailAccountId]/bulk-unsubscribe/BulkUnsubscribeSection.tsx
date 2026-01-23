@@ -126,7 +126,7 @@ export function BulkUnsubscribe() {
         setDateRange(undefined);
       } else {
         setDateRange({
-          from: subDays(now, Number.parseInt(value)),
+          from: subDays(now, Number.parseInt(value, 10)),
           to: now,
         });
       }
@@ -135,7 +135,7 @@ export function BulkUnsubscribe() {
   );
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(now, Number.parseInt(defaultSelected.value)),
+    from: subDays(now, Number.parseInt(defaultSelected.value, 10)),
     to: now,
   });
 

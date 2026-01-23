@@ -1,9 +1,9 @@
-type McpIntegrationConfig = {
+interface McpIntegrationConfig {
   name: string;
   serverUrl?: string;
   authType: "oauth" | "api-token";
   scopes: string[];
-};
+}
 
 export const MCP_INTEGRATIONS: Record<
   string,

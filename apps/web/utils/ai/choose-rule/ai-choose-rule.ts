@@ -6,12 +6,12 @@ import { getModel, type ModelType } from "@/utils/llms/model";
 import { createGenerateObject } from "@/utils/llms";
 import { getUserInfoPrompt, getUserRulesPrompt } from "@/utils/ai/helpers";
 
-type GetAiResponseOptions = {
+interface GetAiResponseOptions {
   email: EmailForLLM;
   emailAccount: EmailAccountWithAI;
   rules: { name: string; instructions: string; systemType?: string | null }[];
   modelType?: ModelType;
-};
+}
 
 export async function aiChooseRule<
   T extends { name: string; instructions: string; systemType?: string | null },

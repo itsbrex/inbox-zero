@@ -28,7 +28,7 @@ import { CommandShortcut } from "@/components/ui/command";
 import { useModifierKey } from "@/hooks/useModifierKey";
 import { useAccount } from "@/providers/EmailAccountProvider";
 
-export type ReplyingToEmail = {
+export interface ReplyingToEmail {
   threadId: string;
   headerMessageId: string;
   references?: string;
@@ -39,7 +39,7 @@ export type ReplyingToEmail = {
   draftHtml?: string | undefined; // The part being written/edited
   quotedContentHtml?: string | undefined; // The part being quoted/replied to
   date?: string; // The date of the original email
-};
+}
 
 export const ComposeEmailForm = ({
   replyingToEmail,
