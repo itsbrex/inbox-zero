@@ -22,9 +22,9 @@
     "commander": "14.0.2"
   },
   "devDependencies": {
-    "@types/node": "24.10.1",
+    "@types/node": "25.0.10",
     "typescript": "5.9.3",
-    "vitest": "4.0.15"
+    "vitest": "4.0.18"
   },
   "files": [
     "dist"
