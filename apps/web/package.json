@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max_old_space_size=16384 next dev --turbopack",
-    "build": "cross-env NODE_OPTIONS=--max_old_space_size=16384 prisma migrate deploy && next build",
+    "build": "cross-env NODE_OPTIONS=--max_old_space_size=16384 prisma migrate deploy && next build  --turbopack",
     "start": "next start",
     "start:standalone": "node .next/standalone/server.js",
     "lint": "biome check .",
@@ -13,7 +13,8 @@
     "test-ai": "cross-env RUN_AI_TESTS=true vitest --run",
     "test-e2e": "cross-env RUN_E2E_TESTS=true vitest --run",
     "preinstall": "npx only-allow pnpm",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "msal:auth": "tsx scripts/msal-authenticate.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "3.0.67",
@@ -27,6 +28,7 @@
     "@ai-sdk/provider": "2.0.0",
     "@ai-sdk/react": "2.0.106",
     "@asteasolutions/zod-to-openapi": "7.3.4",
+    "@azure/msal-node": "^5.0.2",
     "@better-auth/sso": "1.3.28",
     "@date-fns/tz": "1.4.1",
     "@dub/analytics": "0.0.32",

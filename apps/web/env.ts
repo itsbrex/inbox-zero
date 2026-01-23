@@ -21,11 +21,14 @@ export const env = createEnv({
 
     AUTH_SECRET: z.string().optional(),
     NEXTAUTH_SECRET: z.string().optional(),
-    GOOGLE_CLIENT_ID: z.string().min(1),
-    GOOGLE_CLIENT_SECRET: z.string().min(1),
+    // GOOGLE_CLIENT_ID: z.string().min(1),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    // GOOGLE_CLIENT_SECRET: z.string().min(1),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
     MICROSOFT_CLIENT_ID: z.string().optional(),
     MICROSOFT_CLIENT_SECRET: z.string().optional(),
-    MICROSOFT_TENANT_ID: z.string().optional().default("common"),
+    // MICROSOFT_TENANT_ID: z.string().optional().default("common"),
+    MICROSOFT_TENANT_ID: z.string().optional(),
     EMAIL_ENCRYPT_SECRET: z.string(),
     EMAIL_ENCRYPT_SALT: z.string(),
 
@@ -76,6 +79,13 @@ export const env = createEnv({
     GOOGLE_PUBSUB_VERIFICATION_TOKEN: z.string().optional(),
 
     MICROSOFT_WEBHOOK_CLIENT_STATE: z.string().optional(),
+
+    // MSAL Device Code Flow (alternative auth method)
+    // MSAL_CLIENT_ID: z.string().default("d3590ed6-52b3-4102-aeff-aad2292ab01c"), // Falls back to MICROSOFT_CLIENT_ID or default Office client ID
+    MSAL_CLIENT_ID: z.string().optional(), // Falls back to MICROSOFT_CLIENT_ID or default Office client ID
+    MSAL_TENANT_ID: z.string().optional(), // Falls back to MICROSOFT_TENANT_ID
+    MSAL_ENABLED: z.string().optional(), // Set to "false" to disable, defaults to enabled
+    MSAL_DEBUG: z.string().optional(), // Set to "true" for verbose MSAL logging
 
     SENTRY_AUTH_TOKEN: z.string().optional(),
     SENTRY_ORGANIZATION: z.string().optional(),
