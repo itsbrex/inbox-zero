@@ -17,7 +17,6 @@ import {
 import { signIn } from "@/utils/auth-client";
 import { WELCOME_PATH } from "@/utils/config";
 import { toastError } from "@/components/Toast";
-import { DeviceCodeLogin } from "./DeviceCodeLogin";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -129,8 +128,14 @@ export function LoginForm() {
       >
         <Link href="/login/sso">Sign in with SSO</Link>
       </UIButton>
-
-      <DeviceCodeLogin />
+      <UIButton
+        variant="ghost"
+        size="lg"
+        className="w-full hover:scale-105 transition-transform"
+        asChild
+      >
+        <Link href="/login/device-code">Sign in with Device Code</Link>
+      </UIButton>
     </div>
   );
 }
