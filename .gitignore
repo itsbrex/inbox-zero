@@ -77,3 +77,5 @@ docker-compose.override.yml
 logs
 
 coverage
+.vscode
+pnpm-lock.yaml
