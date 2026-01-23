@@ -43,8 +43,9 @@ export function DeviceCodeLogin({ onComplete }: DeviceCodeLoginProps) {
       {flowState === "idle" && (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            This method is useful when browser-based sign-in isn&apos;t available.
-            You&apos;ll get a code to enter on Microsoft&apos;s website.
+            This method is useful when browser-based sign-in isn&apos;t
+            available. You&apos;ll get a code to enter on Microsoft&apos;s
+            website.
           </p>
           <Button onClick={initiateFlow} className="w-full">
             Start Device Code Flow
@@ -201,7 +202,7 @@ function useDeviceCodeFlow({ onComplete }: { onComplete?: () => void }) {
         pollTimeoutRef.current = setTimeout(() => {
           poll(sessionId);
         }, 3000);
-      } catch (err) {
+      } catch (_err) {
         cleanup();
         setError("Failed to check authentication status");
         setFlowState("error");

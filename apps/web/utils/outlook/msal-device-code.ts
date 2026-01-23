@@ -16,9 +16,79 @@ import {
   type DeviceCodeRequest,
   type AuthenticationResult,
   type AccountInfo,
+  LogLevel,
+  type INetworkModule,
+  type NetworkRequestOptions,
+  type NetworkResponse,
 } from "@azure/msal-node";
 import { env } from "@/env";
 import { createScopedLogger } from "@/utils/logger";
+
+/**
+ * Custom network module to handle fetch issues in Node.js 22+
+ * Uses fresh fetch calls with abort controller timeouts to avoid
+ * undici connection pool issues that cause "fetch failed" errors
+ */
+class CustomNetworkModule implements INetworkModule {
+  private readonly logger = createScopedLogger("msal-network");
+
+  async sendGetRequestAsync<T>(
+    url: string,
+    options?: NetworkRequestOptions,
+  ): Promise<NetworkResponse<T>> {
+    return this.sendRequest<T>(url, "GET", options);
+  }
+
+  async sendPostRequestAsync<T>(
+    url: string,
+    options?: NetworkRequestOptions,
+  ): Promise<NetworkResponse<T>> {
+    return this.sendRequest<T>(url, "POST", options);
+  }
+
+  private async sendRequest<T>(
+    url: string,
+    method: string,
+    options?: NetworkRequestOptions,
+  ): Promise<NetworkResponse<T>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000); // 30 second timeout
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: options?.headers as Record<string, string>,
+        body: options?.body,
+        signal: controller.signal,
+        // Disable keep-alive to avoid connection pool issues
+        keepalive: false,
+      });
+
+      clearTimeout(timeoutId);
+
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+
+      const body = (await response.json()) as T;
+
+      return {
+        headers,
+        body,
+        status: response.status,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      this.logger.error("Network request failed", {
+        url,
+        method,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+}
 
 // Use .default scope for device code flow with Microsoft Office client ID
 // This requests all pre-authorized permissions without requiring explicit consent
@@ -50,11 +120,30 @@ function getMSALApp(): PublicClientApplication {
       env.MICROSOFT_CLIENT_ID ||
       MICROSOFT_OFFICE_CLIENT_ID;
     const tenantId = env.MSAL_TENANT_ID || env.MICROSOFT_TENANT_ID || "common";
+    const debugEnabled = env.MSAL_DEBUG === "true";
 
     msalApp = new PublicClientApplication({
       auth: {
         clientId,
         authority: `https://login.microsoftonline.com/${tenantId}`,
+      },
+      system: {
+        loggerOptions: {
+          loggerCallback: (
+            level: LogLevel,
+            message: string,
+            containsPii: boolean,
+          ) => {
+            if (containsPii) return; // Don't log PII
+            if (debugEnabled || level === LogLevel.Error) {
+              logger.info(`MSAL [${LogLevel[level]}]: ${message}`);
+            }
+          },
+          piiLoggingEnabled: false,
+          logLevel: debugEnabled ? LogLevel.Verbose : LogLevel.Error,
+        },
+        // Use custom network module to avoid Node.js 22+ undici connection pool issues
+        networkClient: new CustomNetworkModule(),
       },
     });
   }
@@ -78,7 +167,17 @@ interface ActiveFlow {
   reject: (error: Error) => void;
 }
 
-const activeFlows = new Map<string, ActiveFlow>();
+// Use globalThis to persist flows across Next.js hot reloads in development
+const globalForFlows = globalThis as unknown as {
+  msalActiveFlows: Map<string, ActiveFlow> | undefined;
+};
+
+const activeFlows =
+  globalForFlows.msalActiveFlows ?? new Map<string, ActiveFlow>();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForFlows.msalActiveFlows = activeFlows;
+}
 
 // Cleanup expired flows periodically
 function cleanupExpiredFlows(): void {
@@ -198,7 +297,15 @@ export async function initiateDeviceCodeFlow(
       flow.resolve(result);
     })
     .catch((error: Error) => {
-      logger.error("Device code flow failed", { sessionId, error });
+      // Log detailed error info for debugging network issues
+      const errorDetails = {
+        sessionId,
+        error: error.message,
+        name: error.name,
+        stack: error.stack?.split("\n").slice(0, 5).join("\n"),
+        cause: error.cause ? String(error.cause) : undefined,
+      };
+      logger.error("Device code flow failed", errorDetails);
       flow.reject(error);
     });
 
@@ -231,13 +338,21 @@ export interface PollResult {
 export async function pollDeviceCodeFlow(
   sessionId: string,
 ): Promise<PollResult> {
+  logger.info("Poll called", {
+    sessionId,
+    activeFlowCount: activeFlows.size,
+    hasFlow: activeFlows.has(sessionId),
+  });
+
   const flow = activeFlows.get(sessionId);
 
   if (!flow) {
+    logger.info("Flow not found in activeFlows", { sessionId });
     return { status: "expired" };
   }
 
   if (new Date() > flow.expiresAt) {
+    logger.info("Flow expired", { sessionId, expiresAt: flow.expiresAt });
     activeFlows.delete(sessionId);
     return { status: "expired" };
   }
