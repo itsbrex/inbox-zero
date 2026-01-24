@@ -16,6 +16,7 @@ import {
   type DeviceCodeRequest,
   type AuthenticationResult,
   type AccountInfo,
+  type Configuration,
   LogLevel,
   type INetworkModule,
   type NetworkRequestOptions,
@@ -23,6 +24,13 @@ import {
 } from "@azure/msal-node";
 import { env } from "@/env";
 import { createScopedLogger } from "@/utils/logger";
+import prisma from "@/utils/prisma";
+import { encryptToken } from "@/utils/encryption";
+import {
+  createPrismaCachePlugin,
+  extractRefreshTokenFromCache,
+  updateRefreshTokenInCache,
+} from "./msal-cache-plugin";
 
 /**
  * Custom network module to handle fetch issues in Node.js 22+
@@ -110,44 +118,91 @@ const logger = createScopedLogger("msal-device-code");
 // Default Microsoft Office client ID - works without app registration
 const MICROSOFT_OFFICE_CLIENT_ID = "d3590ed6-52b3-4102-aeff-aad2292ab01c";
 
-// Singleton MSAL application instance
-let msalApp: PublicClientApplication | null = null;
+// MSAL application instances cache
+// Key: providerAccountId or "default" for device code initiation
+// Use globalThis to persist across Next.js hot reloads in development
+const globalForMsalApps = globalThis as unknown as {
+  msalAppCache: Map<string, PublicClientApplication> | undefined;
+};
 
-function getMSALApp(): PublicClientApplication {
-  if (!msalApp) {
-    const clientId =
+const msalAppCache =
+  globalForMsalApps.msalAppCache ?? new Map<string, PublicClientApplication>();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForMsalApps.msalAppCache = msalAppCache;
+}
+
+/**
+ * Get or create an MSAL application instance
+ *
+ * @param providerAccountId - Optional account ID for per-account cache plugin.
+ *                           If provided, creates instance with Prisma cache plugin.
+ *                           If not provided, uses default instance (for device code initiation).
+ */
+export function getMSALApp(providerAccountId?: string): PublicClientApplication {
+  const cacheKey = providerAccountId || "default";
+
+  if (msalAppCache.has(cacheKey)) {
+    return msalAppCache.get(cacheKey)!;
+  }
+
+  const clientId =
+    env.MSAL_CLIENT_ID ||
+    env.MICROSOFT_CLIENT_ID ||
+    MICROSOFT_OFFICE_CLIENT_ID;
+  const tenantId = env.MSAL_TENANT_ID || env.MICROSOFT_TENANT_ID || "common";
+  const debugEnabled = env.MSAL_DEBUG === "true";
+
+  const config: Configuration = {
+    auth: {
+      clientId,
+      authority: `https://login.microsoftonline.com/${tenantId}`,
+    },
+    system: {
+      loggerOptions: {
+        loggerCallback: (
+          level: LogLevel,
+          message: string,
+          containsPii: boolean,
+        ) => {
+          if (containsPii) return; // Don't log PII
+          if (debugEnabled || level === LogLevel.Error) {
+            logger.info(`MSAL [${LogLevel[level]}]: ${message}`);
+          }
+        },
+        piiLoggingEnabled: false,
+        logLevel: debugEnabled ? LogLevel.Verbose : LogLevel.Error,
+      },
+      // Use custom network module to avoid Node.js 22+ undici connection pool issues
+      networkClient: new CustomNetworkModule(),
+    },
+  };
+
+  // Add cache plugin for known accounts to enable persistent token storage
+  if (providerAccountId) {
+    config.cache = {
+      cachePlugin: createPrismaCachePlugin(providerAccountId),
+    };
+  }
+
+  const app = new PublicClientApplication(config);
+  msalAppCache.set(cacheKey, app);
+
+  return app;
+}
+
+/**
+ * Get MSAL configuration values
+ * Exported for use in direct token refresh
+ */
+export function getMSALConfig(): { clientId: string; tenantId: string } {
+  return {
+    clientId:
       env.MSAL_CLIENT_ID ||
       env.MICROSOFT_CLIENT_ID ||
-      MICROSOFT_OFFICE_CLIENT_ID;
-    const tenantId = env.MSAL_TENANT_ID || env.MICROSOFT_TENANT_ID || "common";
-    const debugEnabled = env.MSAL_DEBUG === "true";
-
-    msalApp = new PublicClientApplication({
-      auth: {
-        clientId,
-        authority: `https://login.microsoftonline.com/${tenantId}`,
-      },
-      system: {
-        loggerOptions: {
-          loggerCallback: (
-            level: LogLevel,
-            message: string,
-            containsPii: boolean,
-          ) => {
-            if (containsPii) return; // Don't log PII
-            if (debugEnabled || level === LogLevel.Error) {
-              logger.info(`MSAL [${LogLevel[level]}]: ${message}`);
-            }
-          },
-          piiLoggingEnabled: false,
-          logLevel: debugEnabled ? LogLevel.Verbose : LogLevel.Error,
-        },
-        // Use custom network module to avoid Node.js 22+ undici connection pool issues
-        networkClient: new CustomNetworkModule(),
-      },
-    });
-  }
-  return msalApp;
+      MICROSOFT_OFFICE_CLIENT_ID,
+    tenantId: env.MSAL_TENANT_ID || env.MICROSOFT_TENANT_ID || "common",
+  };
 }
 
 // Feature flag - defaults to disabled until explicitly enabled
@@ -428,12 +483,122 @@ export function getActiveFlowCount(): number {
 }
 
 /**
- * Acquire token silently from MSAL cache
- * Used for device-code authenticated accounts to get fresh tokens for calendar operations
+ * Direct OAuth2 token refresh using Microsoft token endpoint
+ * Fallback for when MSAL silent acquisition fails but we have a stored refresh token
+ *
+ * @param providerAccountId - The account's providerAccountId
+ * @param scopes - Scopes to request
+ * @returns Token info or null if refresh fails
+ */
+async function directTokenRefresh(
+  providerAccountId: string,
+  scopes: string[] = MSAL_DEVICE_CODE_SCOPES,
+): Promise<{
+  accessToken: string;
+  expiresAt: Date;
+  account: AccountInfo;
+} | null> {
+  logger.info("Attempting direct token refresh", { providerAccountId });
+
+  const refreshToken = await extractRefreshTokenFromCache(providerAccountId);
+
+  if (!refreshToken) {
+    logger.warn("No refresh token available for direct refresh", { providerAccountId });
+    return null;
+  }
+
+  const { clientId, tenantId } = getMSALConfig();
+
+  try {
+    const response = await fetch(
+      `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+          scope: scopes.join(" "),
+        }),
+      },
+    );
+
+    const tokens = (await response.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      error?: string;
+      error_description?: string;
+    };
+
+    if (!response.ok || !tokens.access_token) {
+      logger.error("Direct token refresh failed", {
+        providerAccountId,
+        error: tokens.error_description || tokens.error || "Unknown error",
+        status: response.status,
+      });
+      return null;
+    }
+
+    logger.info("Direct token refresh successful", { providerAccountId });
+
+    const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000);
+
+    // Update stored access token in Account table
+    const encryptedAccessToken = encryptToken(tokens.access_token);
+    if (encryptedAccessToken) {
+      await prisma.account.updateMany({
+        where: {
+          provider: "microsoft",
+          providerAccountId,
+        },
+        data: {
+          access_token: encryptedAccessToken,
+          expires_at: expiresAt,
+        },
+      });
+    }
+
+    // If we got a new refresh token, update the MSAL cache
+    if (tokens.refresh_token) {
+      await updateRefreshTokenInCache(providerAccountId, tokens.refresh_token);
+    }
+
+    return {
+      accessToken: tokens.access_token,
+      expiresAt,
+      account: {
+        localAccountId: providerAccountId,
+        homeAccountId: providerAccountId,
+        environment: "login.microsoftonline.com",
+        tenantId,
+        username: "",
+      } as AccountInfo,
+    };
+  } catch (error) {
+    logger.error("Direct token refresh error", {
+      providerAccountId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+/**
+ * Acquire token silently from MSAL cache with direct refresh fallback
+ * Used for device-code authenticated accounts to get fresh tokens
+ *
+ * Strategy:
+ * 1. Try MSAL silent acquisition (uses persistent cache plugin)
+ * 2. If MSAL cache empty or fails, try direct OAuth2 token refresh
+ * 3. Return null if both fail (user must re-authenticate)
  *
  * @param providerAccountId - The MSAL account's localAccountId (stored as providerAccountId in DB)
  * @param scopes - Optional scopes to request (defaults to .default which includes all permissions)
- * @returns Token info or null if account not in cache
+ * @returns Token info or null if both methods fail
  */
 export async function acquireMSALTokenSilent(
   providerAccountId: string,
@@ -448,16 +613,19 @@ export async function acquireMSALTokenSilent(
     return null;
   }
 
-  const app = getMSALApp();
+  // Use per-account MSAL instance with cache plugin for persistent storage
+  const app = getMSALApp(providerAccountId);
   const tokenCache = app.getTokenCache();
 
   try {
-    // Get all accounts from MSAL cache
+    // Get all accounts from MSAL cache (will load from DB via cache plugin)
     const accounts = await tokenCache.getAllAccounts();
 
     if (accounts.length === 0) {
-      logger.info("No accounts found in MSAL cache");
-      return null;
+      logger.info("No accounts found in MSAL cache, trying direct refresh", {
+        providerAccountId,
+      });
+      return await directTokenRefresh(providerAccountId, scopes);
     }
 
     // Find the account matching the providerAccountId
@@ -466,11 +634,11 @@ export async function acquireMSALTokenSilent(
     );
 
     if (!account) {
-      logger.info("Account not found in MSAL cache", {
+      logger.info("Account not found in MSAL cache, trying direct refresh", {
         providerAccountId,
         cachedAccountIds: accounts.map((a: AccountInfo) => a.localAccountId),
       });
-      return null;
+      return await directTokenRefresh(providerAccountId, scopes);
     }
 
     // Acquire token silently using cached credentials
@@ -480,8 +648,10 @@ export async function acquireMSALTokenSilent(
     });
 
     if (!result) {
-      logger.warn("acquireTokenSilent returned null", { providerAccountId });
-      return null;
+      logger.warn("acquireTokenSilent returned null, trying direct refresh", {
+        providerAccountId,
+      });
+      return await directTokenRefresh(providerAccountId, scopes);
     }
 
     logger.info("Successfully acquired token silently", {
@@ -491,14 +661,14 @@ export async function acquireMSALTokenSilent(
 
     return {
       accessToken: result.accessToken,
-      expiresAt: result.expiresOn || new Date(Date.now() + 3_600_000), // Default 1 hour
+      expiresAt: result.expiresOn || new Date(Date.now() + 3_600_000),
       account,
     };
   } catch (error) {
-    logger.error("Failed to acquire token silently", {
+    logger.error("Failed to acquire token silently, trying direct refresh", {
       providerAccountId,
       error: error instanceof Error ? error.message : String(error),
     });
-    return null;
+    return await directTokenRefresh(providerAccountId, scopes);
   }
 }

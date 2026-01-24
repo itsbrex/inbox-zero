@@ -4,6 +4,7 @@ import { serializeSignedCookie } from "better-call";
 import {
   pollDeviceCodeFlow,
   isMSALDeviceCodeEnabled,
+  getMSALApp,
 } from "@/utils/outlook/msal-device-code";
 import { createOutlookClient } from "@/utils/outlook/client";
 import { encryptToken } from "@/utils/encryption";
@@ -222,6 +223,38 @@ async function completeDeviceCodeAuthentication({
     email,
     providerAccountId,
   });
+
+  // Persist the MSAL cache for future token refresh
+  // This enables token refresh to survive server restarts
+  try {
+    const app = getMSALApp();
+    const tokenCache = app.getTokenCache();
+    const serializedCache = tokenCache.serialize();
+
+    if (serializedCache) {
+      const encryptedCache = encryptToken(serializedCache);
+      if (encryptedCache) {
+        await prisma.account.updateMany({
+          where: {
+            provider: "microsoft",
+            providerAccountId,
+          },
+          data: {
+            msal_cache: encryptedCache,
+            msal_cache_updated: new Date(),
+          },
+        });
+        logger.info("Persisted initial MSAL cache", { providerAccountId });
+      }
+    }
+  } catch (cacheError) {
+    // Non-fatal - log but don't fail the auth flow
+    // Cache will be re-populated on next successful token acquisition
+    logger.error("Failed to persist initial MSAL cache", {
+      providerAccountId,
+      error: cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
 
   await prisma.$transaction([
     prisma.emailAccount.upsert({

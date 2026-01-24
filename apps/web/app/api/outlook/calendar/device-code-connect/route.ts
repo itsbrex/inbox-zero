@@ -106,7 +106,15 @@ export const POST = withEmailAccount(
       });
       // Need to decrypt the token
       const { decryptToken } = await import("@/utils/encryption");
-      accessToken = decryptToken(storedToken);
+      const decrypted = decryptToken(storedToken);
+      if (!decrypted) {
+        logger.error("Failed to decrypt stored access token", { emailAccountId });
+        return NextResponse.json(
+          { success: false, error: "Token decryption failed" },
+          { status: 500 },
+        );
+      }
+      accessToken = decrypted;
       tokenExpiresAt = storedExpiry!;
     } else {
       // Try MSAL for token refresh

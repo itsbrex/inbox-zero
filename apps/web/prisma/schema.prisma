@@ -33,6 +33,12 @@ model Account {
   user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   emailAccount          EmailAccount?
 
+  // MSAL device-code flow cache persistence
+  // Stores serialized MSAL token cache for accounts authenticated via device-code flow
+  // This enables token refresh to survive server restarts
+  msal_cache            String?       @db.Text
+  msal_cache_updated    DateTime?
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
