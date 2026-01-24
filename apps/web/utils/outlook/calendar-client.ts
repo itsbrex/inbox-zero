@@ -7,6 +7,7 @@ import {
   Client,
   type AuthenticationProvider,
 } from "@microsoft/microsoft-graph-client";
+import { acquireMSALTokenSilent } from "@/utils/outlook/msal-device-code";
 
 class CalendarAuthProvider implements AuthenticationProvider {
   private readonly accessToken: string;
@@ -42,23 +43,69 @@ export const getCalendarClientWithRefresh = async ({
   refreshToken,
   expiresAt,
   emailAccountId,
+  providerAccountId,
   logger,
 }: {
   accessToken?: string | null;
   refreshToken: string | null;
   expiresAt: number | null;
   emailAccountId: string;
+  providerAccountId?: string | null;
   logger: Logger;
 }): Promise<Client> => {
-  if (!refreshToken) throw new SafeError("No refresh token");
-
   // Check if token is still valid
   if (expiresAt && expiresAt > Date.now() && accessToken) {
     const authProvider = new CalendarAuthProvider(accessToken);
     return Client.initWithMiddleware({ authProvider });
   }
 
-  // Token is expired or missing, need to refresh
+  // For device-code accounts (no refresh token), use MSAL silent acquisition
+  if (!refreshToken && providerAccountId) {
+    logger.info("Using MSAL silent acquisition for calendar token refresh", {
+      emailAccountId,
+      providerAccountId,
+    });
+
+    const msalResult = await acquireMSALTokenSilent(providerAccountId);
+
+    if (!msalResult) {
+      throw new SafeError(
+        "Authentication expired. Please log in again using device code flow.",
+      );
+    }
+
+    // Update the calendar connection with the fresh token
+    const calendarConnection = await prisma.calendarConnection.findFirst({
+      where: {
+        emailAccountId,
+        provider: "microsoft",
+      },
+      select: { id: true },
+    });
+
+    if (calendarConnection) {
+      await prisma.calendarConnection.update({
+        where: { id: calendarConnection.id },
+        data: {
+          accessToken: msalResult.accessToken,
+          expiresAt: msalResult.expiresAt,
+        },
+      });
+      logger.info("Updated calendar connection with MSAL token", {
+        connectionId: calendarConnection.id,
+      });
+    }
+
+    const authProvider = new CalendarAuthProvider(msalResult.accessToken);
+    return Client.initWithMiddleware({ authProvider });
+  }
+
+  // Standard OAuth flow - requires refresh token
+  if (!refreshToken) {
+    throw new SafeError("No refresh token available for calendar access");
+  }
+
+  // Token is expired or missing, need to refresh using OAuth
   try {
     if (!env.MICROSOFT_CLIENT_ID || !env.MICROSOFT_CLIENT_SECRET) {
       throw new Error("Microsoft login not enabled - missing credentials");

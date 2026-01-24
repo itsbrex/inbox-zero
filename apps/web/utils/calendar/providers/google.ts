@@ -53,6 +53,7 @@ export function createGoogleCalendarProvider(
       refreshToken: string,
       emailAccountId: string,
       expiresAt: Date | null,
+      _providerAccountId?: string | null, // Not used for Google, only Microsoft MSAL
     ): Promise<void> {
       try {
         const calendarClient = await getCalendarClientWithRefresh({

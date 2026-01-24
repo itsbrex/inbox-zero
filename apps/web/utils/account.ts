@@ -64,9 +64,10 @@ export async function getOutlookClientForEmail({
   const tokens = await getTokens({ emailAccountId });
   const outlook = await getOutlookClientWithRefresh({
     accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken || "",
+    refreshToken: tokens.refreshToken || null,
     expiresAt: tokens.expiresAt,
     emailAccountId,
+    providerAccountId: tokens.providerAccountId,
     logger,
   });
   return outlook;
@@ -82,9 +83,10 @@ export async function getOutlookAndAccessTokenForEmail({
   const tokens = await getTokens({ emailAccountId });
   const outlook = await getOutlookClientWithRefresh({
     accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken || "",
+    refreshToken: tokens.refreshToken || null,
     expiresAt: tokens.expiresAt,
     emailAccountId,
+    providerAccountId: tokens.providerAccountId,
     logger,
   });
   const accessToken = getOutlookAccessToken(outlook);
@@ -98,19 +100,25 @@ export async function getOutlookClientForEmailId({
   emailAccountId: string;
   logger: Logger;
 }) {
-  const account = await prisma.emailAccount.findUnique({
+  const emailAccount = await prisma.emailAccount.findUnique({
     where: { id: emailAccountId },
     select: {
       account: {
-        select: { access_token: true, refresh_token: true, expires_at: true },
+        select: {
+          access_token: true,
+          refresh_token: true,
+          expires_at: true,
+          providerAccountId: true,
+        },
       },
     },
   });
   const outlook = await getOutlookClientWithRefresh({
-    accessToken: account?.account.access_token,
-    refreshToken: account?.account.refresh_token || "",
-    expiresAt: account?.account.expires_at?.getTime() ?? null,
+    accessToken: emailAccount?.account.access_token,
+    refreshToken: emailAccount?.account.refresh_token || null,
+    expiresAt: emailAccount?.account.expires_at?.getTime() ?? null,
     emailAccountId,
+    providerAccountId: emailAccount?.account.providerAccountId,
     logger,
   });
   return outlook;
@@ -121,7 +129,12 @@ async function getTokens({ emailAccountId }: { emailAccountId: string }) {
     where: { id: emailAccountId },
     select: {
       account: {
-        select: { access_token: true, refresh_token: true, expires_at: true },
+        select: {
+          access_token: true,
+          refresh_token: true,
+          expires_at: true,
+          providerAccountId: true,
+        },
       },
     },
   });
@@ -130,6 +143,7 @@ async function getTokens({ emailAccountId }: { emailAccountId: string }) {
     accessToken: emailAccount?.account.access_token,
     refreshToken: emailAccount?.account.refresh_token,
     expiresAt: emailAccount?.account.expires_at?.getTime() ?? null,
+    providerAccountId: emailAccount?.account.providerAccountId,
   };
 }
 

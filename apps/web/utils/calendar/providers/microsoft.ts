@@ -88,6 +88,7 @@ export function createMicrosoftCalendarProvider(
       refreshToken: string,
       emailAccountId: string,
       expiresAt: Date | null,
+      providerAccountId?: string | null,
     ): Promise<void> {
       try {
         const calendarClient = await getCalendarClientWithRefresh({
@@ -95,6 +96,7 @@ export function createMicrosoftCalendarProvider(
           refreshToken,
           expiresAt: expiresAt?.getTime() ?? null,
           emailAccountId,
+          providerAccountId,
           logger,
         });
 

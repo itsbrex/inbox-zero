@@ -4,8 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { toastError } from "@/components/Toast";
+import { toastError, toastSuccess } from "@/components/Toast";
 import type { GetCalendarAuthUrlResponse } from "@/app/api/google/calendar/auth-url/route";
+import type { DeviceCodeCalendarConnectResponse } from "@/app/api/outlook/calendar/device-code-connect/route";
 import { fetchWithAccount } from "@/utils/fetch";
 import { createScopedLogger } from "@/utils/logger";
 import { CALENDAR_ONBOARDING_RETURN_COOKIE } from "@/utils/calendar/constants";
@@ -15,7 +16,7 @@ export function ConnectCalendar({
 }: {
   onboardingReturnPath?: string;
 }) {
-  const { emailAccountId } = useAccount();
+  const { emailAccountId, isDeviceCodeAuth } = useAccount();
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [isConnectingMicrosoft, setIsConnectingMicrosoft] = useState(false);
   const logger = createScopedLogger("calendar-connection");
@@ -59,6 +60,30 @@ export function ConnectCalendar({
   const handleConnectMicrosoft = async () => {
     setIsConnectingMicrosoft(true);
     try {
+      // Device-code authenticated accounts use direct API call instead of OAuth redirect
+      if (isDeviceCodeAuth) {
+        const response = await fetchWithAccount({
+          url: "/api/outlook/calendar/device-code-connect",
+          emailAccountId,
+          init: {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        });
+
+        const data: DeviceCodeCalendarConnectResponse = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Failed to connect calendar");
+        }
+
+        toastSuccess({ description: "Calendar connected successfully!" });
+        // Refresh the page to show connected calendar
+        window.location.reload();
+        return;
+      }
+
+      // OAuth flow for non-device-code accounts
       const response = await fetchWithAccount({
         url: "/api/outlook/calendar/auth-url",
         emailAccountId,
@@ -77,10 +102,14 @@ export function ConnectCalendar({
         error,
         emailAccountId,
         provider: "microsoft",
+        isDeviceCodeAuth,
       });
       toastError({
-        title: "Error initiating Microsoft calendar connection",
-        description: "Please try again or contact support",
+        title: "Error connecting Microsoft calendar",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again or contact support",
       });
       setIsConnectingMicrosoft(false);
     }

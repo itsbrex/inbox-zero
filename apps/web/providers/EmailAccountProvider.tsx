@@ -11,6 +11,8 @@ interface Context {
   userEmail: string;
   isLoading: boolean;
   provider: string;
+  isDeviceCodeAuth: boolean;
+  providerAccountId: string | null;
 }
 
 const EmailAccountContext = createContext<Context | undefined>(undefined);
@@ -69,6 +71,8 @@ export function EmailAccountProvider({
         emailAccountId: emailAccountId ?? "",
         userEmail: emailAccount?.email ?? "",
         provider: emailAccount?.account?.provider ?? "",
+        isDeviceCodeAuth: emailAccount?.isDeviceCodeAuth ?? false,
+        providerAccountId: emailAccount?.providerAccountId ?? null,
       }}
     >
       {children}

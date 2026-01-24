@@ -17,6 +17,7 @@ export interface CalendarOAuthProvider {
 
   /**
    * Sync calendars for this provider
+   * @param providerAccountId - Optional: Used for MSAL token refresh in device-code flow
    */
   syncCalendars(
     connectionId: string,
@@ -24,6 +25,7 @@ export interface CalendarOAuthProvider {
     refreshToken: string,
     emailAccountId: string,
     expiresAt: Date | null,
+    providerAccountId?: string | null,
   ): Promise<void>;
 }
 

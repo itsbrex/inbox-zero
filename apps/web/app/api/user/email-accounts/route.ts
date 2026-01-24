@@ -18,6 +18,8 @@ async function getEmailAccounts({ userId }: { userId: string }) {
       account: {
         select: {
           provider: true,
+          providerAccountId: true,
+          refresh_token: true,
         },
       },
       user: {
@@ -33,18 +35,40 @@ async function getEmailAccounts({ userId }: { userId: string }) {
     },
   });
 
-  const accountsWithNames = emailAccounts.map((account) => {
+  const accountsWithNames = emailAccounts.map((emailAccount) => {
+    // Compute if this is a device-code authenticated account
+    // Device-code accounts have refresh_token = null with microsoft provider
+    const isDeviceCodeAuth =
+      emailAccount.account?.provider === "microsoft" &&
+      !emailAccount.account?.refresh_token;
+
+    // Extract providerAccountId for MSAL token lookup
+    const providerAccountId = emailAccount.account?.providerAccountId || null;
+
+    // Remove refresh_token from the response (security - don't expose to client)
+    const { refresh_token: _refreshToken, ...accountWithoutToken } =
+      emailAccount.account || {};
+
     // Old accounts don't have a name attached, so use the name from the user
-    if (account.user.email === account.email) {
+    if (emailAccount.user.email === emailAccount.email) {
       return {
-        ...account,
-        name: account.name || account.user.name,
-        image: account.image || account.user.image,
+        ...emailAccount,
+        account: accountWithoutToken,
+        name: emailAccount.name || emailAccount.user.name,
+        image: emailAccount.image || emailAccount.user.image,
         isPrimary: true,
+        isDeviceCodeAuth,
+        providerAccountId,
       };
     }
 
-    return { ...account, isPrimary: false };
+    return {
+      ...emailAccount,
+      account: accountWithoutToken,
+      isPrimary: false,
+      isDeviceCodeAuth,
+      providerAccountId,
+    };
   });
 
   return { emailAccounts: accountsWithNames };

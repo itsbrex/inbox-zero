@@ -5,6 +5,9 @@ import { env } from "@/env";
 import type { Logger } from "@/utils/logger";
 import { SCOPES } from "@/utils/outlook/scopes";
 import { SafeError } from "@/utils/error";
+import { acquireMSALTokenSilent } from "@/utils/outlook/msal-device-code";
+import { encryptToken } from "@/utils/encryption";
+import prisma from "@/utils/prisma";
 
 // Add buffer time to prevent token expiry during long-running operations
 const TOKEN_REFRESH_BUFFER_MS = 10 * 60 * 1000; // 10 minutes
@@ -87,20 +90,17 @@ export const getOutlookClientWithRefresh = async ({
   refreshToken,
   expiresAt,
   emailAccountId,
+  providerAccountId,
   logger,
 }: {
   accessToken?: string | null;
   refreshToken: string | null;
   expiresAt: number | null;
   emailAccountId: string;
+  providerAccountId?: string | null;
   logger: Logger;
 }): Promise<OutlookClient> => {
-  if (!refreshToken) {
-    logger.error("No refresh token", { emailAccountId });
-    throw new SafeError("No refresh token");
-  }
-
-  // Check if token needs refresh
+  // Check if token is still valid
   const expiryDate = expiresAt ? expiresAt : null;
   if (
     accessToken &&
@@ -108,6 +108,44 @@ export const getOutlookClientWithRefresh = async ({
     expiryDate > Date.now() + TOKEN_REFRESH_BUFFER_MS
   ) {
     return createOutlookClient(accessToken, logger);
+  }
+
+  // For device-code accounts (no refresh token), use MSAL silent acquisition
+  if (!refreshToken && providerAccountId) {
+    logger.info("Using MSAL silent acquisition for email token refresh", {
+      emailAccountId,
+      providerAccountId,
+    });
+
+    const msalResult = await acquireMSALTokenSilent(providerAccountId);
+
+    if (!msalResult) {
+      throw new SafeError(
+        "Authentication expired. Please log in again using device code flow.",
+      );
+    }
+
+    // Update the account with the fresh token
+    await prisma.account.updateMany({
+      where: { providerAccountId },
+      data: {
+        access_token: encryptToken(msalResult.accessToken),
+        expires_at: msalResult.expiresAt,
+      },
+    });
+
+    logger.info("Updated account with MSAL token", {
+      emailAccountId,
+      providerAccountId,
+    });
+
+    return createOutlookClient(msalResult.accessToken, logger);
+  }
+
+  // Standard OAuth flow - requires refresh token
+  if (!refreshToken) {
+    logger.error("No refresh token", { emailAccountId });
+    throw new SafeError("No refresh token");
   }
 
   // Refresh token

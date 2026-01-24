@@ -426,3 +426,79 @@ export function getActiveFlowCount(): number {
   cleanupExpiredFlows();
   return activeFlows.size;
 }
+
+/**
+ * Acquire token silently from MSAL cache
+ * Used for device-code authenticated accounts to get fresh tokens for calendar operations
+ *
+ * @param providerAccountId - The MSAL account's localAccountId (stored as providerAccountId in DB)
+ * @param scopes - Optional scopes to request (defaults to .default which includes all permissions)
+ * @returns Token info or null if account not in cache
+ */
+export async function acquireMSALTokenSilent(
+  providerAccountId: string,
+  scopes: string[] = MSAL_DEVICE_CODE_SCOPES,
+): Promise<{
+  accessToken: string;
+  expiresAt: Date;
+  account: AccountInfo;
+} | null> {
+  if (!isMSALDeviceCodeEnabled()) {
+    logger.warn("MSAL device code flow is not enabled");
+    return null;
+  }
+
+  const app = getMSALApp();
+  const tokenCache = app.getTokenCache();
+
+  try {
+    // Get all accounts from MSAL cache
+    const accounts = await tokenCache.getAllAccounts();
+
+    if (accounts.length === 0) {
+      logger.info("No accounts found in MSAL cache");
+      return null;
+    }
+
+    // Find the account matching the providerAccountId
+    const account = accounts.find(
+      (acc: AccountInfo) => acc.localAccountId === providerAccountId,
+    );
+
+    if (!account) {
+      logger.info("Account not found in MSAL cache", {
+        providerAccountId,
+        cachedAccountIds: accounts.map((a: AccountInfo) => a.localAccountId),
+      });
+      return null;
+    }
+
+    // Acquire token silently using cached credentials
+    const result = await app.acquireTokenSilent({
+      account,
+      scopes,
+    });
+
+    if (!result) {
+      logger.warn("acquireTokenSilent returned null", { providerAccountId });
+      return null;
+    }
+
+    logger.info("Successfully acquired token silently", {
+      providerAccountId,
+      expiresOn: result.expiresOn?.toISOString(),
+    });
+
+    return {
+      accessToken: result.accessToken,
+      expiresAt: result.expiresOn || new Date(Date.now() + 3_600_000), // Default 1 hour
+      account,
+    };
+  } catch (error) {
+    logger.error("Failed to acquire token silently", {
+      providerAccountId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
