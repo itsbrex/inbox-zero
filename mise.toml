@@ -1,0 +1,41 @@
+[tools]
+node = "22"
+
+[hooks]
+postinstall = "corepack enable pnpm && corepack use pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
+
+[settings]
+experimental = true
+
+[env]
+_.path = ["./node_modules/.bin"]
+# install mise-managed tools into a directory inside this repo
+MISE_INSTALLS_DIR = "{{config_root}}/.mise/installs"
+# =============================================================================
+# Required Environment Variables
+# Set these in mise.local.toml or your environment before running the app
+# =============================================================================
+# --- Database (Required) ---
+DATABASE_URL = { required = "PostgreSQL connection string (e.g., postgresql://postgres:password@localhost:5432/inboxzero?schema=public)" }
+DIRECT_URL = { required = "Prisma direct connection URL, typically same as DATABASE_URL" }
+# --- Redis/Upstash (Required) ---
+UPSTASH_REDIS_URL = { required = "Upstash Redis REST URL (e.g., https://your-redis.upstash.io or http://localhost:8079 for local)" }
+UPSTASH_REDIS_TOKEN = { required = "Upstash Redis token. Generate with: openssl rand -hex 32" }
+# --- Authentication (Required) ---
+AUTH_SECRET = { required = "NextAuth secret key. Generate with: openssl rand -hex 32" }
+# --- Encryption Keys (Required) ---
+EMAIL_ENCRYPT_SECRET = { required = "Email encryption secret. Generate with: openssl rand -hex 32" }
+EMAIL_ENCRYPT_SALT = { required = "Email encryption salt. Generate with: openssl rand -hex 16" }
+INTERNAL_API_KEY = { required = "Internal API key for service-to-service auth. Generate with: openssl rand -hex 32" }
+API_KEY_SALT = { required = "Salt for API key hashing. Generate with: openssl rand -hex 32" }
+# --- OAuth Providers (At least one required) ---
+# Google OAuth
+GOOGLE_CLIENT_ID = { required = "Google OAuth Client ID from https://console.cloud.google.com/apis/credentials" }
+GOOGLE_CLIENT_SECRET = { required = "Google OAuth Client Secret" }
+GOOGLE_PUBSUB_TOPIC_NAME = { required = "Google Pub/Sub topic (e.g., projects/your-project/topics/gmail-push)" }
+GOOGLE_PUBSUB_VERIFICATION_TOKEN = { required = "Pub/Sub verification token. Generate with: openssl rand -hex 32" }
+
+# Microsoft OAuth (optional if only using Google)
+# MICROSOFT_CLIENT_ID = { required = "Microsoft OAuth Client ID from Azure Portal" }
+# MICROSOFT_CLIENT_SECRET = { required = "Microsoft OAuth Client Secret" }
+# MICROSOFT_WEBHOOK_CLIENT_STATE = { required = "Webhook verification token. Generate with: openssl rand -hex 32" }
