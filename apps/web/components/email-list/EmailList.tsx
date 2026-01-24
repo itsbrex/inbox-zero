@@ -496,7 +496,7 @@ function ResizeGroup({
 }) {
   const isMobile = useIsMobile();
 
-  if (!right) return left;
+  if (!right) return <>{left}</>;
 
   return (
     <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
