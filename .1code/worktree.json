@@ -1,0 +1,6 @@
+{
+  "setup-worktree": [
+    "pnpm install",
+    "cp $ROOT_WORKTREE_PATH/apps/web/.env apps/web/.env"
+  ]
+}
