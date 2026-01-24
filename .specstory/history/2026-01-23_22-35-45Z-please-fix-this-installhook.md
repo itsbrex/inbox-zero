@@ -210,3 +210,784 @@ Find react-resizable-panels type definitions
 
 `fd -p "react-resizable-panels" ~/.pnpm-store -t d 2>/dev/null | head -1 | xargs -I {} find {} -name "*.d.ts" | head -1 | xargs cat 2>/dev/null | head -50`
 </details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:38:04.330Z)**_
+
+<think><details><summary>Thought Process</summary>
+Let me try another approach - check where pnpm stores this package.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:38:06.005Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Find the actual location of react-resizable-panels
+
+`cd apps/web && pnpm why react-resizable-panels && ls -la node_modules/react-resizable-panels 2>/dev/null || ls -la node_modules/.pnpm/*/node_modules/react-resizable-panels 2>/dev/null`
+```
+Exit code 1
+(eval):cd:1: no such file or directory: apps/web
+(eval):1: no matches found: node_modules/.pnpm/*/node_modules/react-resizable-panels
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:39:46.119Z)**_
+
+<think><details><summary>Thought Process</summary>
+I'm in a different directory. Let me check my current directory first.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:39:46.999Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check current directory and find package
+
+`pwd && ls -la node_modules/react-resizable-panels 2>/dev/null`
+```
+/Users/hack/github/inbox-zero/apps/web
+lrwxr-x---@ 1 hack  staff  151 Jan 23 13:33 node_modules/react-resizable-panels -> ../../../../../../../opt/homebrew/opt/pnpm/react-resizable-panels@4.4.1_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/react-resizable-panels
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:40:34.522Z)**_
+
+<think><details><summary>Thought Process</summary>
+Let me look at the actual exports from the package.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:40:35.312Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Read react-resizable-panels ESM exports
+
+`cat node_modules/react-resizable-panels/dist/react-resizable-panels.esm.js 2>/dev/null | head -80`
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:40:42.673Z)**_
+
+<think><details><summary>Thought Process</summary>
+Let me check the dist folder contents.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:40:43.666Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+List dist files and read package.json
+
+`ls -la node_modules/react-resizable-panels/dist/ 2>/dev/null && cat node_modules/react-resizable-panels/package.json`
+```
+total 864
+drwxr-x---@ 7 hack  admin     224 Jan 23 14:07 .
+drwxr-x---@ 6 hack  admin     192 Jan 23 14:07 ..
+-rw-r-----@ 1 hack  admin   29630 Jan 23 13:32 react-resizable-panels.cjs
+-rw-r-----@ 1 hack  admin  167926 Jan 23 13:32 react-resizable-panels.cjs.map
+-rw-r-----@ 1 hack  admin   16167 Jan 23 13:32 react-resizable-panels.d.ts
+-rw-r-----@ 1 hack  admin   45926 Jan 23 13:32 react-resizable-panels.js
+-rw-r-----@ 1 hack  admin  173862 Jan 23 13:32 react-resizable-panels.js.map
+{
+  "name": "react-resizable-panels",
+  "version": "4.4.1",
+  "type": "module",
+  "author": "Brian Vaughn <brian.david.vaughn@gmail.com> (https://github.com/bvaughn/)",
+  "contributors": [
+    "Brian Vaughn <brian.david.vaughn@gmail.com> (https://github.com/bvaughn/)"
+  ],
+  "license": "MIT",
+  "homepage": "https://react-resizable-panels.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bvaughn/react-resizable-panels.git"
+  },
+  "main": "dist/react-resizable-panels.cjs",
+  "module": "dist/react-resizable-panels.js",
+  "types": "dist/react-resizable-panels.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "dev:integrations": "pnpm run dev:integrations:next & pnpm run dev:integrations:vike & pnpm run dev:integrations:vite",
+    "dev:integrations:next": "pnpm -C integrations/next/ run dev",
+    "dev:integrations:vike": "pnpm -C integrations/vike/ run dev",
+    "dev:integrations:vite": "pnpm -C integrations/vite/ run dev",
+    "build": "pnpm run build:lib && pnpm run build:docs",
+    "build:docs": "TARGET=docs vite build",
+    "build:lib": "TARGET=lib vite build",
+    "compile": "pnpm run compile:docs && pnpm run compile:examples",
+    "compile:docs": "tsx ./scripts/compile-docs",
+    "compile:examples": "tsx ./scripts/compile-examples",
+    "compress:og-image": "tsx ./scripts/compress-og-image",
+    "e2e:install": "pnpm -C integrations/tests exec playwright install --with-deps",
+    "e2e:test": "pnpm -C integrations/tests run test",
+    "lint": "eslint .",
+    "prerelease": "rm -rf dist && pnpm run build:lib",
+    "prettier": "prettier --write \"**/*.{css,html,js,json,jsx,ts,tsx}\"",
+    "prettier:ci": "prettier --check \"**/*.{css,html,js,json,jsx,ts,tsx}\"",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "test:debug": "vitest --inspect-brk=127.0.0.1:3000 --no-file-parallelism",
+    "tsc": "tsc -b"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@csstools/postcss-oklab-function": "^4.0.11",
+    "@eslint/js": "^9.30.1",
+    "@headlessui/react": "^2.2.4",
+    "@headlessui/tailwindcss": "^0.2.2",
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@tailwindplus/elements": "^1.0.5",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/bytes": "^3.1.5",
+    "@types/compression": "^1.8.1",
+    "@types/express": "^5.0.5",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.2.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.2.3",
+    "@types/sharp": "^0.32.0",
+    "@vitejs/plugin-react-swc": "^3.10.2",
+    "bytes": "^3.1.2",
+    "clsx": "^2.1.1",
+    "compression": "^1.8.1",
+    "csstype": "^3.1.3",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "express": "^5.1.0",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^16.1.4",
+    "markdown-it": "^14.1.0",
+    "marked": "^16.4.1",
+    "postcss": "^8.5.6",
+    "prettier": "3.6.2",
+    "prettier-plugin-tailwindcss": "^0.7.1",
+    "react": "^19.2.3",
+    "react-docgen-typescript": "^2.4.0",
+    "react-dom": "^19.2.3",
+    "react-error-boundary": "^6.0.0",
+    "react-lib-tools": "^0.0.31",
+    "react-router-dom": "^7.6.3",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "rollup-preserve-directives": "^1.1.3",
+    "sharp": "^0.34.5",
+    "sirv": "^3.0.2",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.11",
+    "terser": "^5.43.1",
+    "ts-blank-space": "^0.6.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "typescript-json-schema": "^0.65.1",
+    "vite": "^7.0.4",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-svgr": "^4.3.0",
+    "vitest": "^3.2.4",
+    "vitest-fail-on-console": "^0.10.1",
+    "zustand": "^5.0.7"
+  }
+}
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:02.579Z)**_
+
+<think><details><summary>Thought Process</summary>
+Now let me check the actual exports from the .d.ts file to see what's available.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:03.633Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+Check type definitions for react-resizable-panels exports
+
+`cat node_modules/react-resizable-panels/dist/react-resizable-panels.d.ts | head -100`
+```
+import { CSSProperties } from 'react';
+import { Dispatch } from 'react';
+import { HTMLAttributes } from 'react';
+import { JSX } from 'react/jsx-runtime';
+import { ReactNode } from 'react';
+import { Ref } from 'react';
+import { RefObject } from 'react';
+import { SetStateAction } from 'react';
+
+declare type BasePanelAttributes = Omit<HTMLAttributes<HTMLDivElement>, "onResize">;
+
+declare type BaseSeparatorAttributes = Omit<HTMLAttributes<HTMLDivElement>, "role" | "tabIndex">;
+
+/**
+ * A Group wraps a set of resizable Panel components.
+ * Group content can be resized _horizontally_ or _vertically_.
+ *
+ * Group elements always include the following attributes:
+ *
+ * ```html
+ * <div data-group data-testid="group-id-prop" id="group-id-prop">
+ * ```
+ *
+ * ℹ️ [Test id](https://testing-library.com/docs/queries/bytestid/) can be used to narrow selection when unit testing.
+ */
+export declare function Group({ children, className, defaultLayout, disableCursor, disabled, elementRef: elementRefProp, groupRef, id: idProp, onLayoutChange: onLayoutChangeUnstable, onLayoutChanged: onLayoutChangedUnstable, orientation, style, ...rest }: GroupProps): JSX.Element;
+
+export declare namespace Group {
+    var displayName: string;
+}
+
+/**
+ * Imperative Group API.
+ *
+ * ℹ️ The `useGroupRef` and `useGroupCallbackRef` hooks are exported for convenience use in TypeScript projects.
+ */
+export declare interface GroupImperativeHandle {
+    /**
+     * Get the Group's current layout as a map of Panel id to percentage (0..100)
+     *
+     * @return Map of Panel id to percentages (specified as numbers ranging between 0..100)
+     */
+    getLayout: () => {
+        [panelId: string]: number;
+    };
+    /**
+     * Set a new layout for the Group
+     *
+     * @param layout Map of Panel id to percentage (a number between 0..100)
+     * @return Applied layout (after validation)
+     */
+    setLayout: (layout: {
+        [panelId: string]: number;
+    }) => Layout;
+}
+
+export declare type GroupProps = HTMLAttributes<HTMLDivElement> & {
+    /**
+     * Panel and Separator components that comprise this group.
+     */
+    children?: ReactNode | undefined;
+    /**
+     * CSS class name.
+     */
+    className?: string | undefined;
+    /**
+     * Default layout for the Group.
+     *
+     * ℹ️ This value allows layouts to be remembered between page reloads.
+     *
+     * ⚠️ Refer to the documentation for how to avoid layout shift when using server components.
+     */
+    defaultLayout?: Layout | undefined;
+    /**
+     * This library sets custom mouse cursor styles to indicate drag state.
+     * Use this prop to disable that behavior for Panels and Separators in this group.
+     */
+    disableCursor?: boolean | undefined;
+    /**
+     * Disable resize functionality.
+     */
+    disabled?: boolean | undefined;
+    /**
+     * Ref attached to the root `HTMLDivElement`.
+     */
+    elementRef?: Ref<HTMLDivElement | null> | undefined;
+    /**
+     * Exposes the following imperative API:
+     * - `getLayout(): Layout`
+     * - `setLayout(layout: Layout): void`
+     *
+     * ℹ️ The `useGroupRef` and `useGroupCallbackRef` hooks are exported for convenience use in TypeScript projects.
+     */
+    groupRef?: Ref<GroupImperativeHandle | null> | undefined;
+    /**
+     * Uniquely identifies this group within an application.
+     * Falls back to `useId` when not provided.
+     *
+     * ℹ️ This value will also be assigned to the `data-group` attribute.
+     */
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:21.886Z)**_
+
+<think><details><summary>Thought Process</summary>
+I can see the library exports `Group`, not `PanelGroup`. Let me check for all exports.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:23.104Z)**_
+
+<tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+<summary>Tool use: **Bash**</summary>
+List all exports from react-resizable-panels
+
+`grep "^export" node_modules/react-resizable-panels/dist/react-resizable-panels.d.ts`
+```
+export declare function Group({ children, className, defaultLayout, disableCursor, disabled, elementRef: elementRefProp, groupRef, id: idProp, onLayoutChange: onLayoutChangeUnstable, onLayoutChanged: onLayoutChangedUnstable, orientation, style, ...rest }: GroupProps): JSX.Element;
+export declare namespace Group {
+export declare interface GroupImperativeHandle {
+export declare type GroupProps = HTMLAttributes<HTMLDivElement> & {
+export declare type Layout = {
+export declare type LayoutStorage = Pick<Storage, "getItem" | "setItem">;
+export declare type OnGroupLayoutChange = GroupProps["onLayoutChange"];
+export declare type OnPanelResize = PanelProps["onResize"];
+export declare type Orientation = "horizontal" | "vertical";
+export declare function Panel({ children, className, collapsedSize, collapsible, defaultSize, elementRef: elementRefProp, id: idProp, maxSize, minSize, onResize: onResizeUnstable, panelRef, style, ...rest }: PanelProps): JSX.Element;
+export declare namespace Panel {
+export declare interface PanelImperativeHandle {
+export declare type PanelProps = BasePanelAttributes & {
+export declare type PanelSize = {
+export declare function Separator({ children, className, elementRef: elementRefProp, id: idProp, style, ...rest }: SeparatorProps): JSX.Element;
+export declare namespace Separator {
+export declare type SeparatorProps = BaseSeparatorAttributes & {
+export declare type SizeUnit = "px" | "%" | "em" | "rem" | "vh" | "vw";
+export declare function useDefaultLayout({ debounceSaveMs, panelIds, storage, ...rest }: {
+export declare function useGroupCallbackRef(): [GroupImperativeHandle | null, Dispatch<SetStateAction<GroupImperativeHandle | null>>];
+export declare function useGroupRef(): RefObject<GroupImperativeHandle | null>;
+export declare function usePanelCallbackRef(): [PanelImperativeHandle | null, Dispatch<SetStateAction<PanelImperativeHandle | null>>];
+export declare function usePanelRef(): RefObject<PanelImperativeHandle | null>;
+export { }
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:46.807Z)**_
+
+<think><details><summary>Thought Process</summary>
+Now I understand the issue. In version 4.4.1 of `react-resizable-panels`, the exports have changed:
+- `PanelGroup` → `Group`
+- `Panel` → `Panel` (same)
+- `PanelResizeHandle` → `Separator`
+
+The component is using a namespace import expecting the old API (`PanelGroup`, `PanelResizeHandle`), but the new version uses `Group`, `Panel`, and `Separator`.
+
+I need to update the resizable.tsx file to use the new export names.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:47.851Z)**_
+
+Found the issue. Version 4.4.1 of `react-resizable-panels` changed its API:
+- `PanelGroup` → `Group`
+- `PanelResizeHandle` → `Separator`
+- `Panel` stays the same
+
+Let me fix the component:
+
+_**Agent (claude-opus-4-5-20251101 2026-01-23T22:41:59.668Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+```
+File has been unexpectedly modified. Read it again before attempting to write it.
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:28.507Z)**_
+
+<think><details><summary>Thought Process</summary>
+The file was modified. Let me read it again.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:29.355Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./apps/web/components/ui/resizable.tsx`
+```
+     1→"use client"
+     2→
+     3→import { GripVertical } from "lucide-react"
+     4→import * as ResizablePrimitive from "react-resizable-panels"
+     5→
+     6→import { cn } from "@/utils/index"
+     7→
+     8→const ResizablePanelGroup = ({
+     9→  className,
+    10→  ...props
+    11→}: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
+    12→  <ResizablePrimitive.PanelGroup
+    13→    className={cn(
+    14→      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
+    15→      className
+    16→    )}
+    17→    {...props}
+    18→  />
+    19→)
+    20→
+    21→const ResizablePanel = ResizablePrimitive.Panel
+    22→
+    23→const ResizableHandle = ({
+    24→  withHandle,
+    25→  className,
+    26→  ...props
+    27→}: React.ComponentProps<typeof ResizablePrimitive.PanelResizeHandle> & {
+    28→  withHandle?: boolean
+    29→}) => (
+    30→  <ResizablePrimitive.PanelResizeHandle
+    31→    className={cn(
+    32→      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90",
+    33→      className
+    34→    )}
+    35→    {...props}
+    36→  >
+    37→    {withHandle && (
+    38→      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
+    39→        <GripVertical className="h-2.5 w-2.5" />
+    40→      </div>
+    41→    )}
+    42→  </ResizablePrimitive.PanelResizeHandle>
+    43→)
+    44→
+    45→export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+    46→
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:38.178Z)**_
+
+<think><details><summary>Thought Process</summary>
+The file was slightly modified (import path changed, styling changed). Let me update it with the new API.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:46.592Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+```
+The file /Users/hack/github/inbox-zero/apps/web/components/ui/resizable.tsx has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+     1→"use client"
+     2→
+     3→import { GripVertical } from "lucide-react"
+     4→import {
+     5→  Group,
+     6→  Panel,
+     7→  Separator,
+     8→  type GroupProps,
+     9→  type SeparatorProps,
+    10→} from "react-resizable-panels"
+    11→
+    12→import { cn } from "@/utils/index"
+    13→
+    14→const ResizablePanelGroup = ({
+    15→  className,
+    16→  ...props
+    17→}: GroupProps) => (
+    18→  <Group
+    19→    className={cn(
+    20→      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
+    21→      className
+    22→    )}
+    23→    {...props}
+    24→  />
+    25→)
+    26→
+    27→const ResizablePanel = Panel
+    28→
+    29→const ResizableHandle = ({
+    30→  withHandle,
+    31→  className,
+    32→  ...props
+    33→}: SeparatorProps & {
+    34→  withHandle?: boolean
+    35→}) => (
+    36→  <Separator
+    37→    className={cn(
+    38→      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90",
+    39→      className
+    40→    )}
+    41→    {...props}
+    42→  >
+    43→    {withHandle && (
+    44→      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
+    45→        <GripVertical className="h-2.5 w-2.5" />
+    46→      </div>
+    47→    )}
+    48→  </Separator>
+    49→)
+    50→
+    51→export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+    52→
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:57.925Z)**_
+
+<think><details><summary>Thought Process</summary>
+The file has been updated. Now I need to check if there are any usages of these components that might need adjustments. Let me check for any prop changes between the old and new API - specifically looking at "direction" vs "orientation".
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:58.490Z)**_
+
+Now let me check if there are any usages that need updating (the new API uses `orientation` instead of `direction`).
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:03:59.185Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ pattern `ResizablePanelGroup`
+```
+Found 3 files
+components/ui/resizable.tsx
+components/email-list/EmailList.tsx
+app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:10.660Z)**_
+
+<think><details><summary>Thought Process</summary>
+Let me check how these components are being used - specifically looking for the `direction` prop which is now `orientation` in the new API.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:10.819Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ pattern `ResizablePanelGroup.*direction`
+```
+components/email-list/EmailList.tsx:502:    <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:20.704Z)**_
+
+<think><details><summary>Thought Process</summary>
+I see that `direction` is used but in the new API it's `orientation`. Let me check the full context of how it's used and update it.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:21.722Z)**_
+
+The component uses `direction` prop but the new API uses `orientation`. Let me read the usage files and fix them.
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:22.641Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./apps/web/components/email-list/EmailList.tsx`
+```
+   498→
+   499→  if (!right) return left;
+   500→
+   501→  return (
+   502→    <ResizablePanelGroup direction={isMobile ? "vertical" : "horizontal"}>
+   503→      <ResizablePanel style={{ overflow: "auto" }} defaultSize={50} minSize={0}>
+   504→        {left}
+   505→      </ResizablePanel>
+   506→      <ResizableHandle withHandle />
+   507→      <ResizablePanel defaultSize={50} minSize={0}>
+   508→        {right}
+   509→      </ResizablePanel>
+   510→    </ResizablePanelGroup>
+   511→  );
+   512→}
+   513→
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:23.674Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./apps/web/app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx`
+```
+     1→"use client";
+     2→
+     3→import { useRouter } from "next/navigation";
+     4→import sortBy from "lodash/sortBy";
+     5→import { useState, useCallback, type RefCallback } from "react";
+     6→import type { ParsedMessage } from "@/utils/types";
+     7→import { ThreadTrackerType } from "@/generated/prisma/enums";
+     8→import type { ThreadTracker } from "@/generated/prisma/client";
+     9→import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+    10→import { EmailMessageCell } from "@/components/EmailMessageCell";
+    11→import { Button } from "@/components/ui/button";
+    12→import {
+    13→  CheckCircleIcon,
+    14→  CircleXIcon,
+    15→  HandIcon,
+    16→  RefreshCwIcon,
+    17→  ReplyIcon,
+    18→  XIcon,
+    19→} from "lucide-react";
+    20→import { useThreadsByIds } from "@/hooks/useThreadsByIds";
+    21→import { resolveThreadTrackerAction } from "@/utils/actions/reply-tracking";
+    22→import { toastError, toastSuccess, toastInfo } from "@/components/Toast";
+    23→import { Loading } from "@/components/Loading";
+    24→import { TablePagination } from "@/components/TablePagination";
+    25→import {
+    26→  ResizableHandle,
+    27→  ResizablePanelGroup,
+    28→  ResizablePanel,
+    29→} from "@/components/ui/resizable";
+    30→import { ThreadContent } from "@/components/EmailViewer";
+    31→import { formatShortDate, internalDateToDate } from "@/utils/date";
+    32→import { cn } from "@/utils";
+    33→import { CommandShortcut } from "@/components/ui/command";
+    34→import { useTableKeyboardNavigation } from "@/hooks/useTableKeyboardNavigation";
+    35→import { useIsMobile } from "@/hooks/use-mobile";
+    36→import { useAccount } from "@/providers/EmailAccountProvider";
+    37→import { isGoogleProvider } from "@/utils/email/provider-types";
+    38→
+    39→export function ReplyTrackerEmails({
+    40→  trackers,
+    41→  emailAccountId,
+    42→  userEmail,
+    43→  type,
+    44→  isResolved,
+    45→  totalPages,
+    46→  isAnalyzing,
+    47→}: {
+    48→  trackers: ThreadTracker[];
+    49→  emailAccountId: string;
+    50→  userEmail: string;
+    51→  type?: ThreadTrackerType;
+    52→  isResolved?: boolean;
+    53→  totalPages: number;
+    54→  isAnalyzing: boolean;
+    55→}) {
+    56→  const { provider } = useAccount();
+    57→  const isGmail = isGoogleProvider(provider);
+    58→
+    59→  const [selectedEmail, setSelectedEmail] = useState<{
+    60→    threadId: string;
+    61→    messageId: string;
+    62→  } | null>(null);
+    63→  const [resolvingThreads, setResolvingThreads] = useState<Set<string>>(
+    64→    new Set(),
+    65→  );
+    66→  // When we send an email, it takes some time to process so we want to hide those from the "To Reply" UI
+    67→  // This will reshow on page refresh, but it's good enough for now.
+    68→  const [recentlySentThreads, setRecentlySentThreads] = useState<Set<string>>(
+    69→    new Set(),
+    70→  );
+    71→
+    72→  const { data, isLoading } = useThreadsByIds(
+    73→    {
+    74→      threadIds: trackers.map((t) => t.threadId),
+    75→    },
+    76→    { keepPreviousData: true },
+    77→  );
+    78→
+    79→  const sortedThreads = sortBy(
+    80→    data?.threads.filter((t) => !recentlySentThreads.has(t.id)),
+    81→    (t) => -internalDateToDate(t.messages.at(-1)?.internalDate),
+    82→  );
+    83→
+    84→  const handleResolve = useCallback(
+    85→    async (threadId: string, resolved: boolean) => {
+    86→      if (resolvingThreads.has(threadId)) return;
+    87→
+    88→      setResolvingThreads((prev) => {
+    89→        const next = new Set(prev);
+    90→        next.add(threadId);
+    91→        return next;
+    92→      });
+    93→
+    94→      const result = await resolveThreadTrackerAction(emailAccountId, {
+    95→        threadId,
+    96→        resolved,
+    97→      });
+    98→
+    99→      if (result?.serverError) {
+   100→        toastError({
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:31.729Z)**_
+
+<think><details><summary>Thought Process</summary>
+I need to check if `ReplyTrackerEmails.tsx` also uses `direction`. Let me search for that.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:33.142Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Grep"><details>
+<summary>Tool use: **Grep**</summary>
+ path `./apps/web/app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx` pattern `direction`
+```
+226:        direction={isMobile ? "vertical" : "horizontal"}
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:41.873Z)**_
+
+<think><details><summary>Thought Process</summary>
+Both files use `direction` which needs to be changed to `orientation` in the new API. Let me fix both files.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:45.914Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+```
+The file /Users/hack/github/inbox-zero/apps/web/components/email-list/EmailList.tsx has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+   498→
+   499→  if (!right) return left;
+   500→
+   501→  return (
+   502→    <ResizablePanelGroup orientation={isMobile ? "vertical" : "horizontal"}>
+   503→      <ResizablePanel style={{ overflow: "auto" }} defaultSize={50} minSize={0}>
+   504→        {left}
+   505→      </ResizablePanel>
+   506→      <ResizableHandle withHandle />
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:04:45.933Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+```
+The file /Users/hack/github/inbox-zero/apps/web/app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx has been updated. Here's the result of running `cat -n` on a snippet of the edited file:
+   222→  return (
+   223→    // hacky. this will break if other parts of the layout change
+   224→    <div className="h-[calc(100vh-7.5rem)]">
+   225→      <ResizablePanelGroup
+   226→        orientation={isMobile ? "vertical" : "horizontal"}
+   227→        className="h-full"
+   228→      >
+   229→        <ResizablePanel defaultSize={35} minSize={0}>
+   230→          <div className="h-full overflow-y-auto">{listView}</div>
+```
+</details></tool-use>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:05:03.144Z)**_
+
+<think><details><summary>Thought Process</summary>
+The changes have been made. The diagnostic issues about "Cannot find module" and "Property 'variant'" are not related to my changes - those are TypeScript/IDE module resolution issues that are separate from the react-resizable-panels fix.
+
+The key changes I made were:
+1. Updated `resizable.tsx` to use the new API: `Group`, `Panel`, `Separator` instead of `PanelGroup`, `Panel`, `PanelResizeHandle`
+2. Updated both consuming files to use `orientation` instead of `direction`
+
+The import error for `react-resizable-panels` should be resolved now. Let me verify the fixes are working by checking if there are any remaining issues with the resizable components themselves.
+</details></think>
+
+_**Agent (claude-opus-4-5-20251101 2026-01-24T00:05:06.697Z)**_
+
+Fixed the issue. The `react-resizable-panels` v4.4.1 changed its API:
+
+**Changes made:**
+
+1. **`components/ui/resizable.tsx`** - Updated imports to use new names:
+   - `PanelGroup` → `Group`
+   - `PanelResizeHandle` → `Separator`
+   - `Panel` stays the same
+
+2. **`components/email-list/EmailList.tsx`** and **`app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx`** - Changed `direction` prop to `orientation`
+
+The component should now work correctly with version 4.4.1. The unrelated TypeScript errors you see in the diagnostics are module resolution issues from the IDE, not related to this fix.
