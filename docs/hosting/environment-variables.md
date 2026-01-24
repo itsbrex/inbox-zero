@@ -88,9 +88,11 @@ cp apps/web/.env.example apps/web/.env
 | `NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS` | No | Bypass premium checks (recommended for self-hosting) | `true` |
 | `NEXT_PUBLIC_DIGEST_ENABLED` | No | Enable email digest feature, which sends periodic summaries of emails. Requires QStash to be configured. | `false` |
 | `NEXT_PUBLIC_MEETING_BRIEFS_ENABLED` | No | Enable meeting briefs, which automatically sends pre-meeting briefings to users. Requires the meeting briefs cron job to be running. | `false` |
+| `NEXT_PUBLIC_FOLLOW_UP_REMINDERS_ENABLED` | No | Enable follow-up reminders, which allows users to add labels to emails for automatic follow-up tracking. Requires the follow-up reminders cron job to be running. | `false` |
 | `NEXT_PUBLIC_INTEGRATIONS_ENABLED` | No | Enable the integrations feature, allowing users to connect external services. | `false` |
+| `NEXT_PUBLIC_SMART_FILING_ENABLED` | No | Enable the Smart Filing feature for automatic document organization from email attachments. | `false` |
 | **Debugging** ||||
-| `LOG_ZOD_ERRORS` | No | Log Zod validation errors | — |
+| `DISABLE_LOG_ZOD_ERRORS` | No | Disable logging Zod validation errors | — |
 | `ENABLE_DEBUG_LOGS` | No | Enable debug logging | `false` |
 | `NEXT_PUBLIC_LOG_SCOPES` | No | Comma-separated log scopes | — |
 

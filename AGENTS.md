@@ -1,123 +1,338 @@
-# Ultracite Code Standards
+# AGENTS.md - Development Guidelines
 
-This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.
+## Important Notes
 
-## Quick Reference
+- Do not run the project via `dev` or `build` command unless explicitly asked
 
-- **Format code**: `pnpm dlx ultracite fix`
-- **Check for issues**: `pnpm dlx ultracite check`
-- **Diagnose setup**: `pnpm dlx ultracite doctor`
+## Build & Test Commands
 
-Biome (the underlying engine) provides robust linting and formatting. Most issues are automatically fixable.
+- Development: `pnpm dev`
+- Build: `pnpm build`
+- Lint: `pnpm lint`
+- Run all tests: `pnpm test`
+- Run AI tests: `pnpm test-ai`
+- Run single test: `pnpm test __tests__/test-file.test.ts`
+- Run specific AI test: `pnpm test-ai ai-categorize-senders`
 
----
+## Code Style
 
-## Core Principles
+- Use TypeScript with strict null checks
+- Path aliases: Use `@/` for imports from project root
+- NextJS app router structure with (app) directory
+- Follow tailwindcss patterns with prettier-plugin-tailwindcss
+- Prefer functional components with hooks
+- Use proper error handling with try/catch blocks
+- Format code with Prettier
+- Consult .cursor/rules for environment variable management
+- Prefer self-documenting code over comments; use descriptive variable and function names instead of explaining intent with comments. Never add comments that just describe what the code does - code should explain itself. Only add comments for "why" not "what".
+- Logging: Avoid duplicating logger context fields already passed from higher up in the call chain. Use `logger.trace()` for PII fields (from, to, subject, etc.).
+- Add helper functions to the bottom of files, not the top!
+- All imports go at the top of files, no mid-file dynamic imports.
+- Co-locate test files next to source files (e.g., `utils/example.test.ts`). Only E2E and AI tests go in `__tests__/`.
+- Do not export types/interfaces that are only used within the same file. Export later if needed.
+- Never use import/export patterns (importing something just to re-export it). If consumers need a type, they should import it from its original source.
+- Infer types from Zod schemas using `z.infer<typeof schema>` instead of duplicating as separate interfaces.
+- Balance DRY vs WET: Avoid premature abstraction. Duplicating code 2-3 times is often better than creating an abstraction too early. Only extract shared code when you see a clear, stable pattern. WET (Write Everything Twice) code is easier to change than the wrong abstraction. However, obvious copy-paste of entire functions or large blocks should be refactored.
 
-Write code that is **accessible, performant, type-safe, and maintainable**. Focus on clarity and explicit intent over brevity.
+## Component Guidelines
 
-### Type Safety & Explicitness
+- Use shadcn/ui components when available
+- Ensure responsive design with mobile-first approach
+- Follow consistent naming conventions (PascalCase for components)
+- Centralize types in dedicated type files when shared
+- Use LoadingContent component for async data:
+  ```tsx
+  <LoadingContent loading={isLoading} error={error}>
+    {data && <YourComponent data={data} />}
+  </LoadingContent>
+  ```
 
-- Use explicit types for function parameters and return values when they enhance clarity
-- Prefer `unknown` over `any` when the type is genuinely unknown
-- Use const assertions (`as const`) for immutable values and literal types
-- Leverage TypeScript's type narrowing instead of type assertions
-- Use meaningful variable names instead of magic numbers - extract constants with descriptive names
+## Environment Variables
 
-### Modern JavaScript/TypeScript
+- Add to `.env.example`, `env.ts`, and `turbo.json`
+- Client-side vars: Prefix with `NEXT_PUBLIC_`
 
-- Use arrow functions for callbacks and short functions
-- Prefer `for...of` loops over `.forEach()` and indexed `for` loops
-- Use optional chaining (`?.`) and nullish coalescing (`??`) for safer property access
-- Prefer template literals over string concatenation
-- Use destructuring for object and array assignments
-- Use `const` by default, `let` only when reassignment is needed, never `var`
+## Fullstack Workflow
 
-### Async & Promises
+Complete guide for building features from API to UI, combining GET API routes, data fetching, form handling, and server actions.
 
-- Always `await` promises in async functions - don't forget to use the return value
-- Use `async/await` syntax instead of promise chains for better readability
-- Handle errors appropriately in async code with try-catch blocks
-- Don't use async functions as Promise executors
+### Overview
 
-### React & JSX
+When building a new feature, follow this pattern:
 
-- Use function components over class components
-- Call hooks at the top level only, never conditionally
-- Specify all dependencies in hook dependency arrays correctly
-- Use the `key` prop for elements in iterables (prefer unique IDs over array indices)
-- Nest children between opening and closing tags instead of passing as props
-- Don't define components inside other components
-- Use semantic HTML and ARIA attributes for accessibility:
-  - Provide meaningful alt text for images
-  - Use proper heading hierarchy
-  - Add labels for form inputs
-  - Include keyboard event handlers alongside mouse events
-  - Use semantic elements (`<button>`, `<nav>`, etc.) instead of divs with roles
+1. **GET API Route** - For fetching data
+2. **Server Action** - For mutations (create/update/delete)
+3. **Data Fetching** - Using SWR on the client
+4. **Form Handling** - Using React Hook Form with Zod validation
 
-### Error Handling & Debugging
+### 1. GET API Route
 
-- Remove `console.log`, `debugger`, and `alert` statements from production code
-- Throw `Error` objects with descriptive messages, not strings or other values
-- Use `try-catch` blocks meaningfully - don't catch errors just to rethrow them
-- Prefer early returns over nested conditionals for error cases
+For fetching data. Always wrap with `withAuth` or `withEmailAccount`:
 
-### Code Organization
+```typescript
+// apps/web/app/api/user/example/route.ts
+import { NextResponse } from "next/server";
+import prisma from "@/utils/prisma";
+import { withEmailAccount } from "@/utils/middleware";
 
-- Keep functions focused and under reasonable cognitive complexity limits
-- Extract complex conditions into well-named boolean variables
-- Use early returns to reduce nesting
-- Prefer simple conditionals over nested ternary operators
-- Group related code together and separate concerns
+// Auto-generate response type for client use
+export type GetExampleResponse = Awaited<ReturnType<typeof getData>>;
 
-### Security
+export const GET = withEmailAccount(async (request) => {
+  const { emailAccountId } = request.auth;
 
-- Add `rel="noopener"` when using `target="_blank"` on links
-- Avoid `dangerouslySetInnerHTML` unless absolutely necessary
-- Don't use `eval()` or assign directly to `document.cookie`
-- Validate and sanitize user input
+  const result = await getData({ emailAccountId });
+  return NextResponse.json(result);
+});
 
-### Performance
+// We make this its own function so we can infer the return type for a type-safe response on the client
+async function getData({ emailAccountId }: { emailAccountId: string }) {
+  const items = await prisma.example.findMany({
+    where: { emailAccountId },
+  });
 
-- Avoid spread syntax in accumulators within loops
-- Use top-level regex literals instead of creating them in loops
-- Prefer specific imports over namespace imports
-- Avoid barrel files (index files that re-export everything)
-- Use proper image components (e.g., Next.js `<Image>`) over `<img>` tags
+  return { items };
+}
+```
 
-### Framework-Specific Guidance
+### 2. Server Action
 
-**Next.js:**
-- Use Next.js `<Image>` component for images
-- Use `next/head` or App Router metadata API for head elements
-- Use Server Components for async data fetching instead of async Client Components
+For mutations. Use `next-safe-action` with proper validation:
 
-**React 19+:**
-- Use ref as a prop instead of `React.forwardRef`
+**Validation Schema** (`apps/web/utils/actions/example.validation.ts`):
 
-**Solid/Svelte/Vue/Qwik:**
-- Use `class` and `for` attributes (not `className` or `htmlFor`)
+```typescript
+import { z } from "zod";
 
----
+export const createExampleBody = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  description: z.string().optional(),
+});
+export type CreateExampleBody = z.infer<typeof createExampleBody>;
 
-## Testing
+export const updateExampleBody = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  description: z.string().optional(),
+});
+export type UpdateExampleBody = z.infer<typeof updateExampleBody>;
+```
 
-- Write assertions inside `it()` or `test()` blocks
-- Avoid done callbacks in async tests - use async/await instead
-- Don't use `.only` or `.skip` in committed code
-- Keep test suites reasonably flat - avoid excessive `describe` nesting
+**Server Action** (`apps/web/utils/actions/example.ts`):
 
-## When Biome Can't Help
+```typescript
+"use server";
 
-Biome's linter will catch most issues automatically. Focus your attention on:
+import { actionClient } from "@/utils/actions/safe-action";
+import {
+  createExampleBody,
+  updateExampleBody,
+} from "@/utils/actions/example.validation";
+import prisma from "@/utils/prisma";
+import { revalidatePath } from "next/cache";
 
-1. **Business logic correctness** - Biome can't validate your algorithms
-2. **Meaningful naming** - Use descriptive names for functions, variables, and types
-3. **Architecture decisions** - Component structure, data flow, and API design
-4. **Edge cases** - Handle boundary conditions and error states
-5. **User experience** - Accessibility, performance, and usability considerations
-6. **Documentation** - Add comments for complex logic, but prefer self-documenting code
+export const createExampleAction = actionClient
+  .metadata({ name: "createExample" })
+  .schema(createExampleBody)
+  .action(
+    async ({
+      ctx: { emailAccountId },
+      parsedInput: { name, email, description },
+    }) => {
+      const example = await prisma.example.create({
+        data: {
+          name,
+          email,
+          description,
+          emailAccountId,
+        },
+      });
 
----
+      revalidatePath("/examples");
+      return example;
+    },
+  );
 
-Most formatting and common issues are automatically fixed by Biome. Run `pnpm dlx ultracite fix` before committing to ensure compliance.
+export const updateExampleAction = actionClient
+  .metadata({ name: "updateExample" })
+  .schema(updateExampleBody)
+  .action(
+    async ({
+      ctx: { emailAccountId },
+      parsedInput: { id, name, email, description },
+    }) => {
+      const example = await prisma.example.update({
+        where: { id, emailAccountId },
+        data: { name, email, description },
+      });
+
+      revalidatePath("/examples");
+      return example;
+    },
+  );
+```
+
+### 3. Data Fetching
+
+Use SWR for client-side data fetching:
+
+```typescript
+import useSWR from "swr";
+import { GetExampleResponse } from "@/app/api/user/example/route";
+
+export function useExamples() {
+  return useSWR<GetExampleResponse>("/api/user/example");
+}
+```
+
+### 4. Form Handling
+
+Use React Hook Form with `useAction` from `next-safe-action/hooks`:
+
+```typescript
+import { useCallback } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/Input";
+import { Button } from "@/components/ui/button";
+import { toastSuccess, toastError } from "@/components/Toast";
+import { getActionErrorMessage } from "@/utils/error";
+import { createExampleAction } from "@/utils/actions/example";
+import { createExampleBody, type CreateExampleBody } from "@/utils/actions/example.validation";
+
+export function ExampleForm({ onSuccess }: { onSuccess?: () => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<CreateExampleBody>({
+    resolver: zodResolver(createExampleBody),
+  });
+
+  const { execute, isExecuting } = useAction(createExampleAction, {
+    onSuccess: () => {
+      toastSuccess({ description: "Example created!" });
+      reset();
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toastError({
+        description: getActionErrorMessage(error.error),
+      });
+    },
+  });
+
+  return (
+    <form className="space-y-4" onSubmit={handleSubmit(execute)}>
+      <Input
+        type="text"
+        name="name"
+        label="Name"
+        registerProps={register("name")}
+        error={errors.name}
+      />
+      <Input
+        type="email"
+        name="email"
+        label="Email"
+        registerProps={register("email")}
+        error={errors.email}
+      />
+      <Input
+        type="text"
+        name="description"
+        label="Description"
+        registerProps={register("description")}
+        error={errors.description}
+      />
+      <Button type="submit" loading={isExecuting}>
+        Create Example
+      </Button>
+    </form>
+  );
+}
+```
+
+### 5. Complete Data Fetching Component
+
+```typescript
+'use client';
+
+import { useExamples } from "@/hooks/useExamples";
+import { Button } from "@/components/ui/button";
+import { LoadingContent } from "@/components/LoadingContent";
+
+export function Examples() {
+  const { data, isLoading, error } = useExamples();
+
+  return (
+    <LoadingContent loading={isLoading} error={error}>
+      <div className="grid gap-4">
+        {data?.examples.map((example) => (
+          <div key={example.id} className="border p-4 rounded">
+            <h3 className="font-semibold">{example.name}</h3>
+            <p className="text-gray-600">{example.email}</p>
+            {example.description && (
+              <p className="text-sm text-gray-500">{example.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </LoadingContent>
+  );
+}
+```
+
+### Key Guidelines
+
+#### Authentication & Authorization
+
+- Use `withAuth` for user-level operations
+- Use `withEmailAccount` for email-account-level operations
+- Server actions automatically get the right context
+
+#### Mutations
+
+- Use server actions for all mutations (create/update/delete operations)
+- Do NOT use POST API routes for mutations - use server actions instead
+
+#### Error Handling
+
+- Use `useAction` hook with `onSuccess` and `onError` callbacks
+- Use `getActionErrorMessage(error.error)` from `@/utils/error` to extract user-friendly messages
+- For prefix + error pattern: `getActionErrorMessage(error.error, { prefix: "Failed to save" })`
+- `next-safe-action` provides centralized error handling with flattened validation errors
+- No need for try/catch in GET routes when using middleware
+
+#### Type Safety
+
+- Export response types from GET routes
+- Use Zod schemas for validation on both client and server
+- Leverage TypeScript inference for better DX
+
+#### Loading and Error States
+
+- Use `LoadingContent` component to handle loading and error states consistently
+- Pass `loading`, `error`, and children props to `LoadingContent`
+- This provides a standardized way to show loading spinners and error messages
+
+#### Performance
+
+- Use SWR for efficient data fetching and caching
+- Call `mutate()` after successful mutations to refresh data
+- Use `revalidatePath` in server actions for cache invalidation
+
+#### File Organization
+
+```
+apps/web/
+├── app/api/user/example/route.ts          # GET API route
+├── utils/actions/example.validation.ts    # Zod schemas
+├── utils/actions/example.ts               # Server actions
+├── hooks/useExamples.ts                   # SWR hook
+└── components/ExampleForm.tsx             # Form component
+```

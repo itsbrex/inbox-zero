@@ -1,18 +1,26 @@
+import { after } from "next/server";
 import prisma from "@/utils/prisma";
 import { runRules } from "@/utils/ai/choose-rule/run-rules";
 import { categorizeSender } from "@/utils/categorize/senders/categorize";
-import { markMessageAsProcessing } from "@/utils/redis/message-processing";
 import { isAssistantEmail } from "@/utils/assistant/is-assistant-email";
 import { processAssistantEmail } from "@/utils/assistant/process-assistant-email";
+import { isFilebotEmail } from "@/utils/filebot/is-filebot-email";
+import { processFilingReply } from "@/utils/drive/handle-filing-reply";
+import {
+  processAttachment,
+  getExtractableAttachments,
+} from "@/utils/drive/filing-engine";
 import { handleOutboundMessage } from "@/utils/reply-tracker/handle-outbound";
+import { clearFollowUpLabel } from "@/utils/follow-up/labels";
 import { NewsletterStatus } from "@/generated/prisma/enums";
 import type { EmailAccount } from "@/generated/prisma/client";
-import { extractEmailAddress } from "@/utils/email";
+import { extractEmailAddress, extractNameFromEmail } from "@/utils/email";
 import { isIgnoredSender } from "@/utils/filter-ignored-senders";
 import type { EmailProvider } from "@/utils/email/types";
-import type { RuleWithActions } from "@/utils/types";
+import type { ParsedMessage, RuleWithActions } from "@/utils/types";
 import type { EmailAccountWithAI } from "@/utils/llms/types";
 import type { Logger } from "@/utils/logger";
+import { captureException } from "@/utils/error";
 
 export interface SharedProcessHistoryOptions {
   provider: EmailProvider;
@@ -20,7 +28,10 @@ export interface SharedProcessHistoryOptions {
   hasAutomationRules: boolean;
   hasAiAccess: boolean;
   emailAccount: EmailAccountWithAI &
-    Pick<EmailAccount, "autoCategorizeSenders">;
+    Pick<
+      EmailAccount,
+      "autoCategorizeSenders" | "filingEnabled" | "filingPrompt" | "email"
+    >;
   logger: Logger;
 }
 
@@ -28,9 +39,11 @@ export async function processHistoryItem(
   {
     messageId,
     threadId,
+    message,
   }: {
     messageId: string;
     threadId?: string;
+    message?: ParsedMessage;
   },
   options: SharedProcessHistoryOptions,
 ) {
@@ -46,68 +59,33 @@ export async function processHistoryItem(
   const emailAccountId = emailAccount.id;
   const userEmail = emailAccount.email;
 
-  const isFree = await markMessageAsProcessing({ userEmail, messageId });
-
-  if (!isFree) {
-    logger.info("Skipping. Message already being processed.");
-    return;
-  }
-
-  logger.info("Getting message");
-
   try {
-    const [parsedMessage, hasExistingRule] = await Promise.all([
-      provider.getMessage(messageId),
-      threadId
-        ? prisma.executedRule.findFirst({
-            where: {
-              emailAccountId,
-              threadId,
-              messageId,
-            },
-            select: { id: true },
-          })
-        : null,
-    ]);
+    logger.info("Shared processor started");
 
-    // Get threadId from message if not provided
-    const actualThreadId = threadId || parsedMessage.threadId;
-
-    // Re-check with actual threadId if we didn't have it initially
-    const finalHasExistingRule =
-      hasExistingRule !== null
-        ? hasExistingRule
-        : actualThreadId
-          ? await prisma.executedRule.findFirst({
-              where: {
-                emailAccountId,
-                threadId: actualThreadId,
-                messageId,
-              },
-              select: { id: true },
-            })
-          : null;
-
-    // if the rule has already been executed, skip
-    if (finalHasExistingRule) {
-      logger.info("Skipping. Rule already exists.");
-      return;
-    }
+    // Use pre-fetched message if provided, otherwise fetch it
+    const parsedMessage = message ?? (await provider.getMessage(messageId));
 
     if (isIgnoredSender(parsedMessage.headers.from)) {
       logger.info("Skipping. Ignored sender.");
       return;
     }
 
-    // Skip messages that are not in inbox or sent items folders
-    // We want to process inbox messages (for rules/automation) and sent messages (for reply tracking)
-    const isInInbox = parsedMessage.labelIds?.includes("INBOX") || false;
-    const isInSentItems = parsedMessage.labelIds?.includes("SENT") || false;
+    // Get threadId from message if not provided
+    const actualThreadId = threadId || parsedMessage.threadId;
 
-    if (!isInInbox && !isInSentItems) {
-      logger.info("Skipping message not in inbox or sent items", {
-        labelIds: parsedMessage.labelIds,
-      });
+    const hasExistingRule = actualThreadId
+      ? await prisma.executedRule.findFirst({
+          where: {
+            emailAccountId,
+            threadId: actualThreadId,
+            messageId,
+          },
+          select: { id: true },
+        })
+      : null;
+
+    if (hasExistingRule) {
+      logger.info("Skipping. Rule already exists.");
       return;
     }
 
@@ -137,7 +115,33 @@ export async function processHistoryItem(
       return;
     }
 
+    const isForFilebot = isFilebotEmail({
+      userEmail,
+      emailToCheck: parsedMessage.headers.to,
+    });
+
+    if (isForFilebot) {
+      logger.info("Processing filebot reply.");
+      return processFilingReply({
+        message: parsedMessage,
+        emailAccountId,
+        userEmail,
+        emailProvider: provider,
+        emailAccount,
+        logger,
+      });
+    }
+
     const isOutbound = provider.isSentMessage(parsedMessage);
+
+    logger.info("Message direction check", {
+      isOutbound,
+      labelIds: parsedMessage.labelIds,
+    });
+    logger.trace("Message direction details", {
+      from: parsedMessage.headers.from,
+      to: parsedMessage.headers.to,
+    });
 
     if (isOutbound) {
       await handleOutboundMessage({
@@ -174,6 +178,7 @@ export async function processHistoryItem(
     // this is used for category filters in ai rules
     if (emailAccount.autoCategorizeSenders) {
       const sender = extractEmailAddress(parsedMessage.headers.from);
+      const senderName = extractNameFromEmail(parsedMessage.headers.from);
       const existingSender = await prisma.newsletter.findUnique({
         where: {
           email_emailAccountId: { email: sender, emailAccountId },
@@ -181,9 +186,17 @@ export async function processHistoryItem(
         select: { category: true },
       });
       if (!existingSender?.category) {
-        await categorizeSender(sender, emailAccount, provider);
+        await categorizeSender(
+          sender,
+          emailAccount,
+          provider,
+          undefined,
+          senderName !== sender ? senderName : undefined,
+        );
       }
     }
+
+    logger.info("Pre-rules check", { hasAutomationRules, hasAiAccess });
 
     if (hasAutomationRules && hasAiAccess) {
       logger.info("Running rules...");
@@ -197,6 +210,58 @@ export async function processHistoryItem(
         modelType: "default",
         logger,
       });
+    }
+
+    // Process attachments for document filing (runs in parallel with rules if both enabled)
+    if (
+      emailAccount.filingEnabled &&
+      emailAccount.filingPrompt &&
+      hasAiAccess
+    ) {
+      after(async () => {
+        const extractableAttachments = getExtractableAttachments(parsedMessage);
+
+        if (extractableAttachments.length > 0) {
+          logger.info("Processing attachments for filing", {
+            count: extractableAttachments.length,
+          });
+
+          // Process each attachment (don't await all - let them run in background)
+          for (const attachment of extractableAttachments) {
+            await processAttachment({
+              emailAccount: {
+                ...emailAccount,
+                filingEnabled: emailAccount.filingEnabled,
+                filingPrompt: emailAccount.filingPrompt,
+                email: emailAccount.email,
+              },
+              message: parsedMessage,
+              attachment,
+              emailProvider: provider,
+              logger,
+            }).catch((error) => {
+              logger.error("Failed to process attachment", {
+                filename: attachment.filename,
+                error,
+              });
+            });
+          }
+        }
+      });
+    }
+
+    // Remove follow-up label if present (they replied, so follow-up no longer needed)
+    // This handles the case where we were awaiting a reply from them
+    try {
+      await clearFollowUpLabel({
+        emailAccountId,
+        threadId: actualThreadId,
+        provider,
+        logger,
+      });
+    } catch (error) {
+      logger.error("Error removing follow-up label on inbound", { error });
+      captureException(error, { emailAccountId });
     }
   } catch (error: unknown) {
     // Handle provider-specific "not found" errors

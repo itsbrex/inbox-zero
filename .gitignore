@@ -79,7 +79,7 @@ docker-compose.override.yml
 # cli logs
 logs
 
-coverage
 .vscode
 pnpm-lock.yaml
 
+/apps/web/app/(app)/\[emailAccountId\]/demo/*

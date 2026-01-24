@@ -10,17 +10,23 @@ import {
   Text,
 } from "@react-email/components";
 
-export interface GuestBriefing {
+export type GuestBriefing = {
   name: string;
   email: string;
   bullets: string[];
-}
+};
 
-export interface BriefingContent {
+export type InternalTeamMember = {
+  name?: string;
+  email: string;
+};
+
+export type BriefingContent = {
   guests: GuestBriefing[];
-}
+  internalTeamMembers?: InternalTeamMember[];
+};
 
-export interface MeetingBriefingEmailProps {
+export type MeetingBriefingEmailProps = {
   baseUrl: string;
   emailAccountId: string;
   meetingTitle: string;
@@ -29,7 +35,7 @@ export interface MeetingBriefingEmailProps {
   eventUrl: string;
   briefingContent: BriefingContent;
   unsubscribeToken: string;
-}
+};
 
 function renderGuestBriefings(guests: GuestBriefing[]) {
   return guests.map((guest, guestIndex) => (
@@ -49,6 +55,20 @@ function renderGuestBriefings(guests: GuestBriefing[]) {
       ))}
     </div>
   ));
+}
+
+function renderInternalTeamNote(internalTeamMembers: InternalTeamMember[]) {
+  if (internalTeamMembers.length === 0) return null;
+
+  const names = internalTeamMembers
+    .map((member) => member.name || member.email)
+    .join(", ");
+
+  return (
+    <Text className="text-xs text-gray-500 mt-4 mb-0 italic">
+      Also attending: {names} (internal team members - no briefing included)
+    </Text>
+  );
 }
 
 export default function MeetingBriefingEmail({
@@ -99,6 +119,9 @@ export default function MeetingBriefingEmail({
 
             <Section className="px-8 pb-4">
               {renderGuestBriefings(briefingContent.guests)}
+              {renderInternalTeamNote(
+                briefingContent.internalTeamMembers ?? [],
+              )}
             </Section>
 
             <Section className="px-8 pb-6">
@@ -161,6 +184,10 @@ MeetingBriefingEmail.PreviewProps = {
           "Technical evaluator for the deal",
         ],
       },
+    ],
+    internalTeamMembers: [
+      { name: "Alice Chen", email: "alice@mycompany.com" },
+      { name: "Bob Williams", email: "bob@mycompany.com" },
     ],
   },
 };

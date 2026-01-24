@@ -27,8 +27,11 @@ async function getData(emailAccountId: string) {
   const integrations = Object.values(MCP_INTEGRATIONS).map((integration) => ({
     name: integration.name,
     displayName: integration.displayName,
+    shortName: integration.shortName,
+    url: integration.url,
     comingSoon: integration.comingSoon,
     authType: integration.authType,
+    toolsWarning: integration.toolsWarning,
     connection: connections.find(
       (connection) => connection.integration.name === integration.name,
     ),

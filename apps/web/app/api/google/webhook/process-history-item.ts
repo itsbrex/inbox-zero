@@ -4,6 +4,7 @@ import { HistoryEventType } from "@/app/api/google/webhook/types";
 import { createEmailProvider } from "@/utils/email/provider";
 import { handleLabelRemovedEvent } from "@/app/api/google/webhook/process-label-removed-event";
 import { processHistoryItem as processHistoryItemShared } from "@/utils/webhook/process-history-item";
+import { markMessageAsProcessing } from "@/utils/redis/message-processing";
 import type { Logger } from "@/utils/logger";
 
 export async function processHistoryItem(
@@ -24,6 +25,11 @@ export async function processHistoryItem(
   const emailAccountId = emailAccount.id;
 
   if (!messageId || !threadId) return;
+
+  logger.info("Gmail history item received", {
+    eventType: type,
+    labelIds: item.message?.labelIds,
+  });
 
   const provider = await createEmailProvider({
     emailAccountId,
@@ -46,6 +52,18 @@ export async function processHistoryItem(
     logger.info("Processing label added event for learning");
     return;
   }
+
+  // Lock before fetching to avoid extra API calls for duplicate webhooks
+  const isFree = await markMessageAsProcessing({
+    userEmail: emailAccount.email,
+    messageId,
+  });
+  if (!isFree) {
+    logger.info("Skipping. Message already being processed.");
+    return;
+  }
+
+  logger.info("Gmail lock acquired, calling shared processor");
 
   return processHistoryItemShared(
     { messageId, threadId },

@@ -27,13 +27,13 @@ import type { RunRulesResult } from "@/utils/ai/choose-rule/run-rules";
 import { SearchForm } from "@/components/SearchForm";
 import type { BatchExecutedRulesResponse } from "@/app/api/user/executed-rules/batch/route";
 import { isAIRule, isGroupRule, isStaticRule } from "@/utils/condition";
-import { BulkRunRules } from "@/app/(app)/[emailAccountId]/assistant/BulkRunRules";
 import { cn } from "@/utils";
 import { TestCustomEmailForm } from "@/app/(app)/[emailAccountId]/assistant/TestCustomEmailForm";
 import { ResultsDisplay } from "@/app/(app)/[emailAccountId]/assistant/ResultDisplay";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { FixWithChat } from "@/app/(app)/[emailAccountId]/assistant/FixWithChat";
 import { useChat } from "@/providers/ChatProvider";
+import { MutedText } from "@/components/Typography";
 
 type Message = MessagesResponse["messages"][number];
 
@@ -249,8 +249,6 @@ export function ProcessRulesContent({ testMode }: { testMode: boolean }) {
               {testMode ? "Test All" : "Run on All"}
             </Button>
           )}
-
-          {!testMode && <BulkRunRules />}
         </div>
 
         <div className="flex items-center gap-2">
@@ -287,9 +285,7 @@ export function ProcessRulesContent({ testMode }: { testMode: boolean }) {
 
       <LoadingContent loading={isLoading} error={error}>
         {messages.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            No emails found
-          </div>
+          <MutedText className="p-4 text-center">No emails found</MutedText>
         ) : (
           <Card>
             <Table>

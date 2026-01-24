@@ -4,11 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { toastError, toastSuccess } from "@/components/Toast";
+import { toastError } from "@/components/Toast";
+import { captureException } from "@/utils/error";
 import type { GetCalendarAuthUrlResponse } from "@/app/api/google/calendar/auth-url/route";
-import type { DeviceCodeCalendarConnectResponse } from "@/app/api/outlook/calendar/device-code-connect/route";
 import { fetchWithAccount } from "@/utils/fetch";
-import { createScopedLogger } from "@/utils/logger";
 import { CALENDAR_ONBOARDING_RETURN_COOKIE } from "@/utils/calendar/constants";
 
 export function ConnectCalendar({
@@ -16,14 +15,13 @@ export function ConnectCalendar({
 }: {
   onboardingReturnPath?: string;
 }) {
-  const { emailAccountId, isDeviceCodeAuth } = useAccount();
+  const { emailAccountId } = useAccount();
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [isConnectingMicrosoft, setIsConnectingMicrosoft] = useState(false);
-  const logger = createScopedLogger("calendar-connection");
 
   const setOnboardingReturnCookie = () => {
     if (onboardingReturnPath) {
-      document.cookie = `${CALENDAR_ONBOARDING_RETURN_COOKIE}=${encodeURIComponent(onboardingReturnPath)}; path=/; max-age=180`;
+      document.cookie = `${CALENDAR_ONBOARDING_RETURN_COOKIE}=${encodeURIComponent(onboardingReturnPath)}; path=/; max-age=180; SameSite=Lax; Secure`;
     }
   };
 
@@ -44,10 +42,8 @@ export function ConnectCalendar({
       setOnboardingReturnCookie();
       window.location.href = data.url;
     } catch (error) {
-      logger.error("Error initiating Google calendar connection", {
-        error,
-        emailAccountId,
-        provider: "google",
+      captureException(error, {
+        extra: { context: "Google Calendar OAuth initiation" },
       });
       toastError({
         title: "Error initiating Google calendar connection",
@@ -60,30 +56,6 @@ export function ConnectCalendar({
   const handleConnectMicrosoft = async () => {
     setIsConnectingMicrosoft(true);
     try {
-      // Device-code authenticated accounts use direct API call instead of OAuth redirect
-      if (isDeviceCodeAuth) {
-        const response = await fetchWithAccount({
-          url: "/api/outlook/calendar/device-code-connect",
-          emailAccountId,
-          init: {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          },
-        });
-
-        const data: DeviceCodeCalendarConnectResponse = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.error || "Failed to connect calendar");
-        }
-
-        toastSuccess({ description: "Calendar connected successfully!" });
-        // Refresh the page to show connected calendar
-        window.location.reload();
-        return;
-      }
-
-      // OAuth flow for non-device-code accounts
       const response = await fetchWithAccount({
         url: "/api/outlook/calendar/auth-url",
         emailAccountId,
@@ -98,18 +70,12 @@ export function ConnectCalendar({
       setOnboardingReturnCookie();
       window.location.href = data.url;
     } catch (error) {
-      logger.error("Error initiating Microsoft calendar connection", {
-        error,
-        emailAccountId,
-        provider: "microsoft",
-        isDeviceCodeAuth,
+      captureException(error, {
+        extra: { context: "Microsoft Calendar OAuth initiation" },
       });
       toastError({
-        title: "Error connecting Microsoft calendar",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Please try again or contact support",
+        title: "Error initiating Microsoft calendar connection",
+        description: "Please try again or contact support",
       });
       setIsConnectingMicrosoft(false);
     }

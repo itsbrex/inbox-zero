@@ -1,13 +1,10 @@
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 generator client {
   provider               = "prisma-client"
   output                 = "../generated/prisma"
-  engineType             = "client"
   generatedFileExtension = "ts"
   importFileExtension    = "ts"
 }
@@ -80,6 +77,7 @@ model User {
   lastLogin                DateTime?
   utms                     Json?
   errorMessages            Json? // eg. user set incorrect AI API key
+  announcementDismissedAt  DateTime?
 
   // survey answers (extracted from onboardingAnswers for easier querying)
   surveyFeatures     String[] // multiple choice: features user is interested in
@@ -151,6 +149,13 @@ model EmailAccount {
   meetingBriefingsEnabled       Boolean @default(false)
   meetingBriefingsMinutesBefore Int     @default(240) // 4 hours in minutes
 
+  filingEnabled Boolean @default(false)
+  filingPrompt  String?
+
+  followUpAwaitingReplyDays Float?
+  followUpNeedsReplyDays    Float?
+  followUpAutoDraftEnabled  Boolean @default(true)
+
   digestSchedule Schedule?
 
   userId    String
@@ -162,7 +167,7 @@ model EmailAccount {
   rules            Rule[]
   executedRules    ExecutedRule[]
   newsletters      Newsletter[]
-  coldEmails       ColdEmail[]
+  coldEmails       ColdEmail[] // @deprecated - kept for backward compatibility during migration
   groups           Group[]
   categories       Category[]
   threadTrackers   ThreadTracker[]
@@ -182,6 +187,9 @@ model EmailAccount {
   calendarConnections CalendarConnection[]
   mcpConnections      McpConnection[]
   meetingBriefings    MeetingBriefing[]
+  driveConnections    DriveConnection[]
+  documentFilings     DocumentFiling[]
+  filingFolders       FilingFolder[]
 
   @@index([userId])
   @@index([lastSummaryEmailAt])
@@ -283,12 +291,12 @@ model DigestItem {
   digest      Digest          @relation(fields: [digestId], references: [id], onDelete: Cascade)
   actionId    String?
   action      ExecutedAction? @relation(fields: [actionId], references: [id], onDelete: Cascade)
-  coldEmailId String?
-  coldEmail   ColdEmail?      @relation(fields: [coldEmailId], references: [id])
+  coldEmailId String? // @deprecated
+  coldEmail   ColdEmail?      @relation(fields: [coldEmailId], references: [id]) // @deprecated
 
   @@unique([digestId, threadId, messageId])
   @@index([actionId])
-  @@index([coldEmailId])
+  @@index([coldEmailId]) // @deprecated
 }
 
 model Schedule {
@@ -626,6 +634,12 @@ model GroupItem {
   value     String // eg "@gmail.com", "matt@gmail.com", "Receipt from"
   exclude   Boolean       @default(false) // Whether this pattern should be excluded rather than included
 
+  // Optional context for why/how this pattern was learned. 
+  reason    String?
+  threadId  String?
+  messageId String?
+  source    GroupItemSource? // provides value for UI/audit.
+
   @@unique([groupId, type, value])
 }
 
@@ -653,6 +667,7 @@ model Newsletter {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   email     String
+  name      String?
   status    NewsletterStatus?
 
   // For learned patterns for rules
@@ -670,6 +685,9 @@ model Newsletter {
   @@index([categoryId])
 }
 
+// @deprecated - ColdEmail data is being migrated to GroupItem (learned patterns).
+// This model is kept for backward compatibility during the migration period.
+// Once all users have run the migration, this model can be deleted.
 model ColdEmail {
   id        String           @id @default(cuid())
   createdAt DateTime         @default(now())
@@ -744,6 +762,9 @@ model ThreadTracker {
   resolved  Boolean           @default(false)
   type      ThreadTrackerType
 
+  followUpAppliedAt DateTime?
+  followUpDraftId   String?
+
   emailAccountId String
   emailAccount   EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
 
@@ -751,6 +772,7 @@ model ThreadTracker {
   @@index([emailAccountId, resolved])
   @@index([emailAccountId, resolved, sentAt, type])
   @@index([emailAccountId, type, resolved, sentAt])
+  @@index([emailAccountId, type, resolved, followUpAppliedAt, sentAt])
 }
 
 model CleanupJob {
@@ -958,6 +980,89 @@ model MeetingBriefing {
   @@index([emailAccountId])
 }
 
+// Drive connection for document auto-organization (Google Drive or OneDrive/SharePoint)
+// One connection per provider. But we can remove unique constraint in the future if we want
+model DriveConnection {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider     String // "google" or "microsoft"
+  email        String // can differ from emailAccount - e.g. connect work Drive to personal email
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  isConnected  Boolean   @default(true)
+
+  emailAccountId String
+  emailAccount   EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+
+  documentFilings DocumentFiling[]
+  filingFolders   FilingFolder[]
+
+  @@unique([emailAccountId, provider])
+  @@index([emailAccountId])
+}
+
+model FilingFolder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  folderId   String
+  folderName String
+  folderPath String
+
+  driveConnectionId String
+  driveConnection   DriveConnection @relation(fields: [driveConnectionId], references: [id], onDelete: Cascade)
+  emailAccountId    String
+  emailAccount      EmailAccount    @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([emailAccountId, folderId])
+  @@index([driveConnectionId])
+}
+
+model DocumentFiling {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Source email attachment
+  messageId    String
+  attachmentId String
+  filename     String
+
+  // Result (after filing or prediction)
+  folderId   String? // null if AI suggests creating a new folder
+  folderPath String
+  fileId     String?
+  reasoning  String?
+  confidence Float?
+
+  status DocumentFilingStatus @default(FILED)
+
+  wasAsked     Boolean   @default(false)
+  wasCorrected Boolean   @default(false)
+  originalPath String?
+  correctedAt  DateTime?
+
+  // Feedback (for preview and corrections)
+  feedbackPositive Boolean?
+  feedbackAt       DateTime?
+
+  notificationMessageId String?   @unique
+  notificationSentAt    DateTime?
+
+  driveConnectionId String
+  driveConnection   DriveConnection @relation(fields: [driveConnectionId], references: [id], onDelete: Cascade)
+  emailAccountId    String
+  emailAccount      EmailAccount    @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+
+  @@index([emailAccountId, status])
+  @@index([driveConnectionId])
+  @@index([messageId])
+}
+
 model Referral {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -1084,6 +1189,14 @@ enum ColdEmailStatus {
   USER_REJECTED_COLD
 }
 
+enum DocumentFilingStatus {
+  PENDING // Waiting for user input
+  FILED // Document is filed (auto or after user confirmation)
+  REJECTED // User said skip
+  ERROR // Filing failed
+  PREVIEW // Preview feedback only (not filed)
+}
+
 // @deprecated - No longer used
 enum ColdEmailSetting {
   DISABLED
@@ -1194,4 +1307,10 @@ enum MeetingBriefingStatus {
   SENT
   FAILED
   SKIPPED
+}
+
+enum GroupItemSource {
+  AI
+  USER
+  LABEL_REMOVED
 }

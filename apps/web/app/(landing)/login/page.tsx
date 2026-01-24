@@ -9,6 +9,8 @@ import { env } from "@/env";
 import { Button } from "@/components/ui/button";
 import { WELCOME_PATH } from "@/utils/config";
 import { CrispChatLoggedOutVisible } from "@/components/CrispChat";
+import { MutedText } from "@/components/Typography";
+import { isInternalPath } from "@/utils/path";
 
 export const metadata: Metadata = {
   title: "Log in | Inbox Zero",
@@ -22,8 +24,8 @@ export default async function AuthenticationPage(props: {
   const searchParams = await props.searchParams;
   const session = await auth();
   if (session?.user && !searchParams?.error) {
-    if (searchParams?.next) {
-      redirect(searchParams?.next);
+    if (searchParams?.next && isInternalPath(searchParams.next)) {
+      redirect(searchParams.next);
     } else {
       redirect(WELCOME_PATH);
     }
@@ -46,7 +48,7 @@ export default async function AuthenticationPage(props: {
 
         {searchParams?.error && <ErrorAlert error={searchParams?.error} />}
 
-        <p className="px-8 pt-10 text-center text-sm text-muted-foreground">
+        <MutedText className="px-8 pt-10 text-center">
           By clicking continue, you agree to our{" "}
           <Link
             href="/terms"
@@ -62,9 +64,9 @@ export default async function AuthenticationPage(props: {
             Privacy Policy
           </Link>
           .
-        </p>
+        </MutedText>
 
-        <p className="px-4 pt-4 text-center text-sm text-muted-foreground">
+        <MutedText className="px-4 pt-4 text-center">
           Inbox Zero{"'"}s use and transfer of information received from Google
           APIs to any other app will adhere to{" "}
           <a
@@ -74,7 +76,7 @@ export default async function AuthenticationPage(props: {
             Google API Services User Data
           </a>{" "}
           Policy, including the Limited Use requirements.
-        </p>
+        </MutedText>
       </div>
     </div>
   );
@@ -96,6 +98,16 @@ function ErrorAlert({ error }: { error: string }) {
             </Button>
           </>
         }
+      />
+    );
+  }
+
+  if (error === "email_already_linked") {
+    return (
+      <AlertBasic
+        variant="destructive"
+        title="Email Already Linked"
+        description={`This email address is already linked to another Inbox Zero account. Please sign in with the original account, or use a different email address. If this error persists please contact support at ${env.NEXT_PUBLIC_SUPPORT_EMAIL}`}
       />
     );
   }

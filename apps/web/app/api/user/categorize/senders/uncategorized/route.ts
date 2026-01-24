@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { withEmailAccount } from "@/utils/middleware";
 import { getUncategorizedSenders } from "@/app/api/user/categorize/senders/uncategorized/get-uncategorized-senders";
+import type { Sender } from "@/app/api/user/categorize/senders/batch/handle-batch-validation";
 
-export interface UncategorizedSendersResponse {
-  uncategorizedSenders: string[];
+export type UncategorizedSendersResponse = {
+  uncategorizedSenders: Sender[];
   nextOffset?: number;
-}
+};
 
 export const GET = withEmailAccount(
   "user/categorize/senders/uncategorized",
@@ -13,7 +14,7 @@ export const GET = withEmailAccount(
     const emailAccountId = request.auth.emailAccountId;
 
     const url = new URL(request.url);
-    const offset = Number.parseInt(url.searchParams.get("offset") || "0", 10);
+    const offset = Number.parseInt(url.searchParams.get("offset") || "0");
 
     const result = await getUncategorizedSenders({
       emailAccountId,

@@ -4,13 +4,13 @@ import { createReferral } from "@/utils/referral/referral-code";
 import { captureException } from "@/utils/error";
 import { handleReferralOnSignUp, saveTokens } from "@/utils/auth";
 import prisma from "@/utils/__mocks__/prisma";
-import { clearUserErrorMessages } from "@/utils/error-messages";
+import { clearSpecificErrorMessages } from "@/utils/error-messages";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/utils/prisma");
 vi.mock("@/utils/error-messages", () => ({
   addUserErrorMessage: vi.fn().mockResolvedValue(undefined),
-  clearUserErrorMessages: vi.fn().mockResolvedValue(undefined),
+  clearSpecificErrorMessages: vi.fn().mockResolvedValue(undefined),
   ErrorType: {
     ACCOUNT_DISCONNECTED: "Account disconnected",
   },
@@ -144,7 +144,12 @@ describe("saveTokens", () => {
         }),
       }),
     );
-    expect(clearUserErrorMessages).toHaveBeenCalledWith({ userId: "user_1" });
+    expect(clearSpecificErrorMessages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user_1",
+        errorTypes: ["Account disconnected"],
+      }),
+    );
   });
 
   it("clears disconnectedAt and error messages when saving tokens via providerAccountId", async () => {
@@ -174,6 +179,11 @@ describe("saveTokens", () => {
         }),
       }),
     );
-    expect(clearUserErrorMessages).toHaveBeenCalledWith({ userId: "user_1" });
+    expect(clearSpecificErrorMessages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user_1",
+        errorTypes: ["Account disconnected"],
+      }),
+    );
   });
 });

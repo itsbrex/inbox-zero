@@ -1,14 +1,20 @@
-interface McpIntegrationConfig {
+type McpIntegrationConfig = {
   name: string;
   serverUrl?: string;
   authType: "oauth" | "api-token";
   scopes: string[];
-}
+  skipResourceParam?: boolean; // Some OAuth servers don't support RFC 8707 resource parameter
+  defaultToolsDisabled?: boolean; // For integrations with many tools (e.g. Pipedream), disable by default
+  toolsWarning?: string; // Warning message to show when user expands tools list
+  filterWriteTools?: boolean; // Auto-filter write tools, only sync read-only tools (get, list, find, search)
+};
 
 export const MCP_INTEGRATIONS: Record<
   string,
   McpIntegrationConfig & {
     displayName: string;
+    shortName?: string; // Short name for display in compact contexts (e.g. "Connected to X")
+    url: string; // Domain URL for favicon display
     allowedTools?: string[];
     comingSoon?: boolean;
     oauthConfig?: {
@@ -21,6 +27,7 @@ export const MCP_INTEGRATIONS: Record<
   notion: {
     name: "notion",
     displayName: "Notion",
+    url: "notion.com",
     serverUrl: "https://mcp.notion.com/mcp",
     authType: "oauth",
     scopes: ["read"],
@@ -30,6 +37,7 @@ export const MCP_INTEGRATIONS: Record<
   stripe: {
     name: "stripe",
     displayName: "Stripe",
+    url: "stripe.com",
     serverUrl: "https://mcp.stripe.com",
     authType: "oauth", // must request whitelisting of /api/mcp/stripe/callback from Stripe. localhost is whitelisted already.
     // authType: "api-token", // alternatively, use an API token.
@@ -49,6 +57,7 @@ export const MCP_INTEGRATIONS: Record<
   monday: {
     name: "monday",
     displayName: "Monday.com",
+    url: "monday.com",
     serverUrl: "https://mcp.monday.com/mcp",
     authType: "oauth",
     scopes: ["read", "write"],
@@ -86,90 +95,41 @@ export const MCP_INTEGRATIONS: Record<
     // OAuth endpoints auto-discovered via RFC 8414
     comingSoon: false,
   },
-  hubspot: {
-    name: "hubspot",
-    displayName: "HubSpot",
-    serverUrl: "https://mcp.hubspot.com/",
+  pipedream: {
+    name: "pipedream",
+    displayName: "HubSpot, Slack, Airtable, Todoist, and more (via Pipedream)",
+    shortName: "Pipedream",
+    url: "pipedream.com",
+    serverUrl: "https://mcp.pipedream.net/v2",
     authType: "oauth",
-    scopes: [
-      // "crm.objects.contacts.read",
-      // "crm.objects.companies.read",
-      // "crm.objects.deals.read",
-      // "crm.objects.carts.read",
-      // "crm.objects.products.read",
-      // "crm.objects.orders.read",
-      // "crm.objects.line_items.read",
-      // "crm.objects.invoices.read",
-      // "crm.objects.quotes.read",
-      // "crm.objects.subscriptions.read",
-      // "crm.objects.users.read",
-      // "crm.objects.owners.read",
-      "content",
-      "crm.objects.companies.read",
-      "crm.objects.companies.write",
-      "crm.objects.contacts.read",
-      "crm.objects.contacts.write",
-      "crm.objects.deals.write",
-      "forms",
-      "oauth",
-      "timeline",
-    ],
-    oauthConfig: {
-      // authorization_endpoint: "https://mcp.hubspot.com/oauth/authorize/user",
-      authorization_endpoint: "https://app.hubspot.com/oauth/authorize",
-      token_endpoint: "https://mcp.hubspot.com/oauth/v1/token",
-    },
-    comingSoon: true,
+    scopes: ["mcp", "offline_access"],
+    skipResourceParam: true, // Pipedream doesn't support RFC 8707 resource parameter
+    defaultToolsDisabled: true, // Pipedream can have 100s of tools, let users enable what they need
+    filterWriteTools: true, // Only sync read-only tools (get, list, find, search)
+    toolsWarning:
+      "Only enable read-only tools. These tools are used during email drafting, so reading data is safe. Avoid enabling tools that create, update, or delete data.",
+    // No allowedTools - accept all tools Pipedream provides
+    // OAuth endpoints auto-discovered via RFC 8414
   },
-  // clickup: {
-  //   name: "clickup",
-  //   displayName: "ClickUp",
-  //   serverUrl: "",
+  // hubspot: {
+  //   name: "hubspot",
+  //   displayName: "HubSpot",
+  //   serverUrl: "https://mcp.hubspot.com/",
   //   authType: "oauth",
-  //   scopes: [],
-  //   allowedTools: [],
+  //   scopes: [
+  //     "content",
+  //     "crm.objects.companies.read",
+  //     "crm.objects.companies.write",
+  //     "crm.objects.contacts.read",
+  //     "crm.objects.contacts.write",
+  //     "crm.objects.deals.write",
+  //     "forms",
+  //     "oauth",
+  //     "timeline",
+  //   ],
   //   oauthConfig: {
-  //     authorization_endpoint: "",
-  //     token_endpoint: "",
-  //   },
-  //   comingSoon: true,
-  // },
-  // airtable: {
-  //   name: "airtable",
-  //   displayName: "Airtable",
-  //   serverUrl: "",
-  //   authType: "oauth",
-  //   scopes: [],
-  //   allowedTools: [],
-  //   oauthConfig: {
-  //     authorization_endpoint: "",
-  //     token_endpoint: "",
-  //   },
-  //   comingSoon: true,
-  // },
-  // salesforce: {
-  //   name: "salesforce",
-  //   displayName: "Salesforce",
-  //   serverUrl: "",
-  //   authType: "oauth",
-  //   scopes: [],
-  //   allowedTools: [],
-  //   oauthConfig: {
-  //     authorization_endpoint: "",
-  //     token_endpoint: "",
-  //   },
-  //   comingSoon: true,
-  // },
-  // todoist: {
-  //   name: "todoist",
-  //   displayName: "Todoist",
-  //   serverUrl: "",
-  //   authType: "oauth",
-  //   scopes: [],
-  //   allowedTools: [],
-  //   oauthConfig: {
-  //     authorization_endpoint: "",
-  //     token_endpoint: "",
+  //     authorization_endpoint: "https://app.hubspot.com/oauth/authorize",
+  //     token_endpoint: "https://mcp.hubspot.com/oauth/v1/token",
   //   },
   //   comingSoon: true,
   // },

@@ -1,6 +1,7 @@
 // based on: https://github.com/vercel/platforms/blob/main/lib/auth.ts
 
 import { sso } from "@better-auth/sso";
+import { oAuthProxy } from "better-auth/plugins";
 import { createContact as createLoopsContact } from "@inboxzero/loops";
 import { createContact as createResendContact } from "@inboxzero/resend";
 import type { Account, AuthContext } from "better-auth";
@@ -25,7 +26,7 @@ import {
   claimPendingPremiumInvite,
   updateAccountSeats,
 } from "@/utils/premium/server";
-import { clearUserErrorMessages } from "@/utils/error-messages";
+import { clearSpecificErrorMessages, ErrorType } from "@/utils/error-messages";
 import prisma from "@/utils/prisma";
 
 const logger = createScopedLogger("auth");
@@ -50,7 +51,13 @@ export const betterAuthConfig = betterAuth({
     },
   },
   baseURL: env.NEXT_PUBLIC_BASE_URL,
-  trustedOrigins: [env.NEXT_PUBLIC_BASE_URL],
+  trustedOrigins: [
+    env.NEXT_PUBLIC_BASE_URL,
+    ...(env.OAUTH_PROXY_URL ? [env.OAUTH_PROXY_URL] : []),
+    // Additional trusted origins for cross-origin requests (e.g., from preview deployments)
+    // Supports wildcards like https://*.vercel.app
+    ...(env.ADDITIONAL_TRUSTED_ORIGINS ?? []),
+  ],
   secret: env.AUTH_SECRET || env.NEXTAUTH_SECRET,
   emailAndPassword: {
     enabled: false,
@@ -64,6 +71,9 @@ export const betterAuthConfig = betterAuth({
       disableImplicitSignUp: false,
       organizationProvisioning: { disabled: true },
     }),
+    // OAuth proxy for Vercel preview deployments (Google doesn't allow wildcard redirect URIs)
+    // When OAUTH_PROXY_URL is set, OAuth callbacks route through staging then redirect back to preview
+    ...(env.OAUTH_PROXY_URL ? [oAuthProxy()] : []),
   ],
   session: {
     modelName: "Session",
@@ -105,6 +115,10 @@ export const betterAuthConfig = betterAuth({
       accessType: "offline",
       prompt: "select_account consent",
       disableIdTokenSignIn: true,
+      // For preview deployments, redirect through staging (which proxies back to preview URL)
+      ...(env.OAUTH_PROXY_URL && {
+        redirectURI: `${env.OAUTH_PROXY_URL}/api/auth/callback/google`,
+      }),
     },
     microsoft: {
       clientId: env.MICROSOFT_CLIENT_ID || "",
@@ -112,6 +126,10 @@ export const betterAuthConfig = betterAuth({
       scope: [...OUTLOOK_SCOPES],
       tenantId: env.MICROSOFT_TENANT_ID,
       disableIdTokenSignIn: true,
+      // For preview deployments, redirect through staging (which proxies back to preview URL)
+      ...(env.OAUTH_PROXY_URL && {
+        redirectURI: `${env.OAUTH_PROXY_URL}/api/auth/callback/microsoft`,
+      }),
     },
   },
   databaseHooks: {
@@ -277,7 +295,12 @@ export async function handleReferralOnSignUp({
       return;
     }
 
-    const referralCode = referralCookie.value;
+    let referralCode = referralCookie.value;
+    try {
+      referralCode = decodeURIComponent(referralCode);
+    } catch {
+      // Use original value if decoding fails
+    }
     logger.info("Processing referral for new user", {
       email,
       referralCode,
@@ -384,6 +407,24 @@ async function handleLinkAccount(account: Account) {
       throw new Error("Primary email not found for linked account.");
     }
 
+    // Check if email already belongs to a different user
+    const existingEmailAccount = await prisma.emailAccount.findUnique({
+      where: { email: primaryEmail.trim().toLowerCase() },
+      select: { userId: true },
+    });
+
+    if (
+      existingEmailAccount &&
+      existingEmailAccount.userId !== account.userId
+    ) {
+      logger.error("[linkAccount] Email already linked to a different user", {
+        email: primaryEmail,
+        existingUserId: existingEmailAccount.userId,
+        newUserId: account.userId,
+      });
+      throw new Error("email_already_linked");
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: account.userId },
       select: { email: true, name: true, image: true },
@@ -418,7 +459,11 @@ async function handleLinkAccount(account: Account) {
       }),
     ]);
 
-    await clearUserErrorMessages({ userId: account.userId });
+    await clearSpecificErrorMessages({
+      userId: account.userId,
+      errorTypes: [ErrorType.ACCOUNT_DISCONNECTED],
+      logger,
+    });
 
     // Handle premium account seats
     await updateAccountSeats({ userId: account.userId }).catch((error) => {
@@ -502,7 +547,11 @@ export async function saveTokens({
       select: { userId: true },
     });
 
-    await clearUserErrorMessages({ userId: emailAccount.userId });
+    await clearSpecificErrorMessages({
+      userId: emailAccount.userId,
+      errorTypes: [ErrorType.ACCOUNT_DISCONNECTED],
+      logger,
+    });
   } else {
     if (!providerAccountId) {
       logger.error("No providerAccountId found in database", {
@@ -524,7 +573,11 @@ export async function saveTokens({
       data,
     });
 
-    await clearUserErrorMessages({ userId: account.userId });
+    await clearSpecificErrorMessages({
+      userId: account.userId,
+      errorTypes: [ErrorType.ACCOUNT_DISCONNECTED],
+      logger,
+    });
 
     return account;
   }

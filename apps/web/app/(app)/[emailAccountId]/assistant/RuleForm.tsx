@@ -313,21 +313,25 @@ export function RuleForm({
         value: ActionType.MARK_READ,
         icon: getActionIcon(ActionType.MARK_READ),
       },
-      {
-        label: "Reply",
-        value: ActionType.REPLY,
-        icon: getActionIcon(ActionType.REPLY),
-      },
-      {
-        label: "Send email",
-        value: ActionType.SEND_EMAIL,
-        icon: getActionIcon(ActionType.SEND_EMAIL),
-      },
-      {
-        label: "Forward",
-        value: ActionType.FORWARD,
-        icon: getActionIcon(ActionType.FORWARD),
-      },
+      ...(env.NEXT_PUBLIC_EMAIL_SEND_ENABLED
+        ? [
+            {
+              label: "Reply",
+              value: ActionType.REPLY,
+              icon: getActionIcon(ActionType.REPLY),
+            },
+            {
+              label: "Send email",
+              value: ActionType.SEND_EMAIL,
+              icon: getActionIcon(ActionType.SEND_EMAIL),
+            },
+            {
+              label: "Forward",
+              value: ActionType.FORWARD,
+              icon: getActionIcon(ActionType.FORWARD),
+            },
+          ]
+        : []),
       {
         label: "Mark spam",
         value: ActionType.MARK_SPAM,
@@ -405,7 +409,7 @@ export function RuleForm({
         <RuleSectionCard
           icon={MailIcon}
           color="blue"
-          title="When a new email is received in your inbox"
+          title="When you get an email"
           errors={
             errors.conditions?.root?.message ? (
               <AlertError
@@ -433,7 +437,7 @@ export function RuleForm({
         <RuleSectionCard
           icon={BotIcon}
           color="green"
-          title="Then your assistant will perform these actions"
+          title="Then:"
           errors={
             actionErrors.length > 0 ? (
               <AlertError
@@ -518,7 +522,7 @@ export function RuleForm({
                     <LearnedPatternsDialog
                       ruleId={rule.id}
                       groupId={rule.groupId || null}
-                      disabled={!allowMultipleConditions(rule.systemType)}
+                      disabled={isConversationStatusType(rule.systemType)}
                     />
                   </div>
                 )}

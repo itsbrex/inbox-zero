@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { env } from "@/env";
 import { EXTENSION_URL } from "@/utils/config";
 
 export const footerNavigation = {
@@ -9,6 +10,7 @@ export const footerNavigation = {
       target: "_blank",
     },
     { name: "AI Email Assistant", href: "/ai-automation" },
+    { name: "Brief My Meeting", href: "/brief-my-meeting" },
     { name: "Reply Zero", href: "/reply-zero-ai" },
     { name: "Bulk Email Unsubscriber", href: "/bulk-email-unsubscriber" },
     { name: "Clean your inbox", href: "/clean-inbox" },
@@ -31,6 +33,13 @@ export const footerNavigation = {
       name: "vs Perplexity Email Assistant",
       href: "/best-perplexity-email-assistant-alternative",
     },
+  ],
+  tools: [
+    { name: "Email Deliverability Checker", href: "/tools/email-deliverability-checker" },
+    { name: "Gmail Personality Quiz", href: "/tools/gmail-quiz" },
+    { name: "Subject Line Analyzer", href: "/tools/subject-line-analyzer" },
+    { name: "Email Signature Generator", href: "/tools/email-signature-generator" },
+    { name: "Meeting Cost Calculator", href: "/tools/meeting-cost-calculator" },
   ],
   support: [
     { name: "Pricing", href: "/#pricing" },
@@ -109,11 +118,71 @@ export const footerNavigation = {
   ],
 };
 
+// Simple footer for self-hosted deployments
+const selfHostedFooter = {
+  resources: [
+    {
+      name: "Documentation",
+      href: "https://docs.getinboxzero.com",
+      target: "_blank",
+    },
+    { name: "GitHub", href: "/github", target: "_blank" },
+    { name: "Discord", href: "/discord", target: "_blank" },
+  ],
+  legal: [
+    { name: "Terms", href: "/terms" },
+    { name: "Privacy", href: "/privacy" },
+  ],
+};
+
 export function Footer() {
+  if (env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS) {
+    return (
+      <footer className="relative">
+        <div className="mx-auto max-w-7xl overflow-hidden px-6 py-12 lg:px-8">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            {selfHostedFooter.resources.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target={item.target}
+                rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+                className="text-sm leading-6 text-gray-600 hover:text-gray-900"
+              >
+                {item.name}
+              </Link>
+            ))}
+            <span className="text-gray-300">|</span>
+            {selfHostedFooter.legal.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm leading-6 text-gray-600 hover:text-gray-900"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-xs leading-5 text-gray-500">
+            Powered by{" "}
+            <Link
+              href="https://getinboxzero.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-900"
+            >
+              Inbox Zero
+            </Link>
+          </p>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="relative">
       <div className="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
-        <div className="mt-16 grid grid-cols-2 gap-8 lg:grid-cols-5 xl:col-span-2 xl:mt-0">
+        <div className="mt-16 grid grid-cols-2 gap-8 lg:grid-cols-6 xl:col-span-2 xl:mt-0">
           <div>
             <FooterList title="Product" items={footerNavigation.main} />
           </div>
@@ -123,6 +192,9 @@ export function Footer() {
             <div className="mt-6">
               <FooterList title="Compare" items={footerNavigation.compare} />
             </div>
+          </div>
+          <div>
+            <FooterList title="Free Tools" items={footerNavigation.tools} />
           </div>
           <div>
             <FooterList title="Support" items={footerNavigation.support} />

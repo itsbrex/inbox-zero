@@ -18,20 +18,24 @@ import { jsonrepair } from "jsonrepair";
 import type { LanguageModelV2 } from "@ai-sdk/provider";
 import { saveAiUsage } from "@/utils/usage";
 import type { EmailAccountWithAI, UserAIFields } from "@/utils/llms/types";
-import { addUserErrorMessage, ErrorType } from "@/utils/error-messages";
+import {
+  addUserErrorMessageWithNotification,
+  ErrorType,
+} from "@/utils/error-messages";
 import {
   captureException,
   isAnthropicInsufficientBalanceError,
   isAWSThrottlingError,
   isIncorrectOpenAIAPIKeyError,
-  isInvalidOpenAIModelError,
+  isInvalidAIModelError,
   isOpenAIAPIKeyDeactivatedError,
-  isOpenAIRetryError,
+  isAiQuotaExceededError,
   isServiceUnavailableError,
+  SafeError,
 } from "@/utils/error";
 import { getModel, type ModelType } from "@/utils/llms/model";
 import { createScopedLogger } from "@/utils/logger";
-import { withNetworkRetry } from "./retry";
+import { withNetworkRetry, withLLMRetry } from "./retry";
 
 const logger = createScopedLogger("llms");
 
@@ -93,9 +97,10 @@ export function createGenerateText({
     };
 
     try {
-      return await withNetworkRetry(() => generate(modelOptions.model), {
-        label,
-      });
+      return await withLLMRetry(
+        () => withNetworkRetry(() => generate(modelOptions.model), { label }),
+        { label },
+      );
     } catch (error) {
       // Try backup model for service unavailable or throttling errors
       if (
@@ -108,8 +113,11 @@ export function createGenerateText({
         });
 
         try {
-          return await withNetworkRetry(
-            () => generate(modelOptions.backupModel!),
+          return await withLLMRetry(
+            () =>
+              withNetworkRetry(() => generate(modelOptions.backupModel!), {
+                label,
+              }),
             { label },
           );
         } catch (backupError) {
@@ -198,13 +206,16 @@ export function createGenerateObject({
     };
 
     try {
-      return await withNetworkRetry(generate, {
-        label,
-        // Also retry on validation errors for generateObject
-        shouldRetry: (error) =>
-          NoObjectGeneratedError.isInstance(error) ||
-          TypeValidationError.isInstance(error),
-      });
+      return await withLLMRetry(
+        () =>
+          withNetworkRetry(generate, {
+            label,
+            shouldRetry: (error) =>
+              NoObjectGeneratedError.isInstance(error) ||
+              TypeValidationError.isInstance(error),
+          }),
+        { label },
+      );
     } catch (error) {
       await handleError(
         error,
@@ -313,45 +324,68 @@ async function handleError(
     modelName,
   });
 
+  if (RetryError.isInstance(error) && isAiQuotaExceededError(error)) {
+    return await addUserErrorMessageWithNotification({
+      userId,
+      userEmail,
+      emailAccountId,
+      errorType: ErrorType.AI_QUOTA_ERROR,
+      errorMessage:
+        "Your AI provider has rejected requests due to rate limits or quota. Please check your provider account if this persists.",
+      logger,
+    });
+  }
+
   if (APICallError.isInstance(error)) {
     if (isIncorrectOpenAIAPIKeyError(error)) {
-      return await addUserErrorMessage(
+      return await addUserErrorMessageWithNotification({
         userId,
-        ErrorType.INCORRECT_OPENAI_API_KEY,
-        error.message,
-      );
+        userEmail,
+        emailAccountId,
+        errorType: ErrorType.INCORRECT_OPENAI_API_KEY,
+        errorMessage:
+          "Your OpenAI API key is invalid. Please update it in your settings.",
+        logger,
+      });
     }
 
-    if (isInvalidOpenAIModelError(error)) {
-      return await addUserErrorMessage(
+    if (isInvalidAIModelError(error)) {
+      await addUserErrorMessageWithNotification({
         userId,
-        ErrorType.INVALID_OPENAI_MODEL,
-        error.message,
+        userEmail,
+        emailAccountId,
+        errorType: ErrorType.INVALID_AI_MODEL,
+        errorMessage:
+          "The AI model you specified does not exist. Please check your settings.",
+        logger,
+      });
+      throw new SafeError(
+        "The AI model you specified does not exist. Please update your AI settings.",
       );
     }
 
     if (isOpenAIAPIKeyDeactivatedError(error)) {
-      return await addUserErrorMessage(
+      return await addUserErrorMessageWithNotification({
         userId,
-        ErrorType.OPENAI_API_KEY_DEACTIVATED,
-        error.message,
-      );
-    }
-
-    if (RetryError.isInstance(error) && isOpenAIRetryError(error)) {
-      return await addUserErrorMessage(
-        userId,
-        ErrorType.OPENAI_RETRY_ERROR,
-        error.message,
-      );
+        userEmail,
+        emailAccountId,
+        errorType: ErrorType.OPENAI_API_KEY_DEACTIVATED,
+        errorMessage:
+          "Your OpenAI API key has been deactivated. Please update it in your settings.",
+        logger,
+      });
     }
 
     if (isAnthropicInsufficientBalanceError(error)) {
-      return await addUserErrorMessage(
+      return await addUserErrorMessageWithNotification({
         userId,
-        ErrorType.ANTHROPIC_INSUFFICIENT_BALANCE,
-        error.message,
-      );
+        userEmail,
+        emailAccountId,
+        errorType: ErrorType.ANTHROPIC_INSUFFICIENT_BALANCE,
+        errorMessage:
+          "Your Anthropic account has insufficient credits. Please add credits or update your settings.",
+        logger,
+      });
     }
   }
 }

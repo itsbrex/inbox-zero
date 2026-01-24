@@ -13,6 +13,7 @@ import prisma from "@/utils/prisma";
 import { sendColdEmailNotification } from "@/utils/cold-email/send-notification";
 import { extractEmailAddress } from "@/utils/email";
 import { captureException } from "@/utils/error";
+import { ensureEmailSendingEnabled } from "@/utils/mail";
 
 const MODULE = "ai-actions";
 
@@ -61,10 +62,13 @@ export const runActionFunction = async (options: {
     case ActionType.DRAFT_EMAIL:
       return draft(opts);
     case ActionType.REPLY:
+      ensureEmailSendingEnabled();
       return reply(opts);
     case ActionType.SEND_EMAIL:
+      ensureEmailSendingEnabled();
       return send_email(opts);
     case ActionType.FORWARD:
+      ensureEmailSendingEnabled();
       return forward(opts);
     case ActionType.MARK_SPAM:
       return mark_spam(opts);
@@ -318,14 +322,46 @@ const digest: ActionFunction<{ id?: string }> = async ({
   await enqueueDigestItem({ email, emailAccountId, actionId, logger });
 };
 
-const move_folder: ActionFunction<{ folderId?: string | null }> = async ({
-  client,
-  email,
-  userEmail,
-  args,
-}) => {
-  if (!args.folderId) return;
-  await client.moveThreadToFolder(email.threadId, userEmail, args.folderId);
+const move_folder: ActionFunction<{
+  folderId?: string | null;
+  folderName?: string | null;
+}> = async ({ client, email, userEmail, emailAccountId, args, logger }) => {
+  const originalFolderId = args.folderId;
+  let folderIdToUse = originalFolderId;
+
+  // resolve folder name to ID if needed (similar to label resolution)
+  if (!folderIdToUse && args.folderName) {
+    if (hasVariables(args.folderName)) {
+      logger.error("Template folder name not processed by AI", {
+        folderName: args.folderName,
+      });
+      return;
+    }
+
+    logger.info("Resolving folder name to ID", { folderName: args.folderName });
+    folderIdToUse = await client.getOrCreateFolderIdByName(args.folderName);
+
+    if (!folderIdToUse) {
+      logger.error("Failed to resolve folder", { folderName: args.folderName });
+      return;
+    }
+  }
+
+  if (!folderIdToUse) return;
+
+  await client.moveThreadToFolder(email.threadId, userEmail, folderIdToUse);
+
+  // lazy-update the folderId in the database for future runs
+  if (!originalFolderId && folderIdToUse && args.folderName) {
+    after(() =>
+      lazyUpdateActionFolderId({
+        folderName: args.folderName!,
+        folderId: folderIdToUse!,
+        emailAccountId,
+        logger,
+      }),
+    );
+  }
 };
 
 const notify_sender: ActionFunction<Record<string, unknown>> = async ({
@@ -397,6 +433,41 @@ async function lazyUpdateActionLabelId({
   } catch (error) {
     logger.warn("Failed to lazy-update Action labelId", {
       labelId,
+      error,
+    });
+  }
+}
+
+async function lazyUpdateActionFolderId({
+  folderName,
+  folderId,
+  emailAccountId,
+  logger,
+}: {
+  folderName: string;
+  folderId: string;
+  emailAccountId: string;
+  logger: Logger;
+}) {
+  try {
+    const result = await prisma.action.updateMany({
+      where: {
+        folderName,
+        folderId: null,
+        rule: { emailAccountId },
+      },
+      data: { folderId },
+    });
+
+    if (result.count > 0) {
+      logger.info("Lazy-updated Action folderId", {
+        folderId,
+        updatedCount: result.count,
+      });
+    }
+  } catch (error) {
+    logger.warn("Failed to lazy-update Action folderId", {
+      folderId,
       error,
     });
   }

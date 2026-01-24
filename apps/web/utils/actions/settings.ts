@@ -6,13 +6,18 @@ import {
   saveEmailUpdateSettingsBody,
   saveDigestScheduleBody,
   updateDigestItemsBody,
+  toggleDigestBody,
 } from "@/utils/actions/settings.validation";
 import { DEFAULT_PROVIDER } from "@/utils/llms/config";
 import prisma from "@/utils/prisma";
-import { calculateNextScheduleDate } from "@/utils/schedule";
+import {
+  calculateNextScheduleDate,
+  createCanonicalTimeOfDay,
+} from "@/utils/schedule";
 import { actionClientUser } from "@/utils/actions/safe-action";
-import { ActionType } from "@/generated/prisma/enums";
+import { ActionType, SystemType } from "@/generated/prisma/enums";
 import type { Prisma } from "@/generated/prisma/client";
+import { clearSpecificErrorMessages, ErrorType } from "@/utils/error-messages";
 
 export const updateEmailSettingsAction = actionClient
   .metadata({ name: "updateEmailSettings" })
@@ -37,7 +42,7 @@ export const updateAiSettingsAction = actionClientUser
   .inputSchema(saveAiSettingsBody)
   .action(
     async ({
-      ctx: { userId },
+      ctx: { userId, logger },
       parsedInput: { aiProvider, aiModel, aiApiKey },
     }) => {
       await prisma.user.update({
@@ -46,6 +51,20 @@ export const updateAiSettingsAction = actionClientUser
           aiProvider === DEFAULT_PROVIDER
             ? { aiProvider: null, aiModel: null, aiApiKey: null }
             : { aiProvider, aiModel, aiApiKey },
+      });
+
+      // Clear AI-related error messages when user updates their settings
+      // This allows them to be notified again if the new settings are also invalid
+      await clearSpecificErrorMessages({
+        userId,
+        errorTypes: [
+          ErrorType.INCORRECT_OPENAI_API_KEY,
+          ErrorType.INVALID_AI_MODEL,
+          ErrorType.OPENAI_API_KEY_DEACTIVATED,
+          ErrorType.AI_QUOTA_ERROR,
+          ErrorType.ANTHROPIC_INSUFFICIENT_BALANCE,
+        ],
+        logger,
       });
     },
   );
@@ -69,7 +88,6 @@ export const updateDigestScheduleAction = actionClient
       }),
     };
 
-    // remove emailAccountId for update
     const { emailAccountId: _emailAccountId, ...update } = create;
 
     await prisma.schedule.upsert({
@@ -130,6 +148,56 @@ export const updateDigestItemsAction = actionClient
       );
 
       await Promise.all(promises);
+      return { success: true };
+    },
+  );
+
+export const toggleDigestAction = actionClient
+  .metadata({ name: "toggleDigest" })
+  .inputSchema(toggleDigestBody)
+  .action(
+    async ({ ctx: { emailAccountId }, parsedInput: { enabled, timeOfDay } }) => {
+      if (enabled) {
+        const defaultSchedule = {
+          intervalDays: 1,
+          occurrences: 1,
+          daysOfWeek: 127,
+          timeOfDay: timeOfDay ?? createCanonicalTimeOfDay(9, 0),
+        };
+
+        await prisma.schedule.upsert({
+          where: { emailAccountId },
+          create: {
+            emailAccountId,
+            ...defaultSchedule,
+            lastOccurrenceAt: new Date(),
+            nextOccurrenceAt: calculateNextScheduleDate({
+              ...defaultSchedule,
+              lastOccurrenceAt: null,
+            }),
+          },
+          update: {},
+        });
+
+        const newsletterRule = await prisma.rule.findFirst({
+          where: { emailAccountId, systemType: SystemType.NEWSLETTER },
+          include: { actions: true },
+        });
+
+        if (
+          newsletterRule &&
+          !newsletterRule.actions.some((a) => a.type === ActionType.DIGEST)
+        ) {
+          await prisma.action.create({
+            data: { ruleId: newsletterRule.id, type: ActionType.DIGEST },
+          });
+        }
+      } else {
+        await prisma.schedule.deleteMany({
+          where: { emailAccountId },
+        });
+      }
+
       return { success: true };
     },
   );

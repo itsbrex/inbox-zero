@@ -62,7 +62,6 @@
         "SENTRY_ORGANIZATION",
         "SENTRY_PROJECT",
 
-        "LOG_ZOD_ERRORS",
         "DISABLE_LOG_ZOD_ERRORS",
         "ENABLE_DEBUG_LOGS",
 

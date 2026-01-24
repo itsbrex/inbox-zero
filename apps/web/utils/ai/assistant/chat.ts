@@ -25,6 +25,7 @@ import type { MessageContext } from "@/app/api/chat/validation";
 import { stringifyEmail } from "@/utils/stringify-email";
 import { getEmailForLLM } from "@/utils/get-email-from-message";
 import type { ParsedMessage } from "@/utils/types";
+import { env } from "@/env";
 
 export const maxDuration = 120;
 
@@ -700,10 +701,10 @@ A condition can be:
 An action can be:
 1. Archive
 2. Label
-3. Draft a reply
+3. Draft a reply${env.NEXT_PUBLIC_EMAIL_SEND_ENABLED ? `
 4. Reply
 5. Send an email
-6. Forward
+6. Forward` : ""}
 7. Mark as read
 8. Mark spam
 9. Call a webhook
@@ -721,15 +722,23 @@ Best practices:
 - You can use multiple conditions in a rule, but aim for simplicity.
 - When creating rules, in most cases, you should use the "aiInstructions" and sometimes you will use other fields in addition.
 - If a rule can be handled fully with static conditions, do so, but this is rarely possible.
-- IMPORTANT: prefer "draft a reply" over "reply". Only if the user explicitly asks to reply, then use "reply". Clarify beforehand this is the intention. Drafting a reply is safer as it means the user can approve before sending.
+${env.NEXT_PUBLIC_EMAIL_SEND_ENABLED ? `- IMPORTANT: prefer "draft a reply" over "reply". Only if the user explicitly asks to reply, then use "reply". Clarify beforehand this is the intention. Drafting a reply is safer as it means the user can approve before sending.` : ""}
 - Use short, concise rule names (preferably a single word). For example: 'Marketing', 'Newsletters', 'Urgent', 'Receipts'. Avoid verbose names like 'Archive and label marketing emails'.
 
 Always explain the changes you made.
 Use simple language and avoid jargon in your reply.
 If you are unable to fix the rule, say so.
 
-You can set general infomation about the user too that will be passed as context when the AI is processing emails.
-Reply Zero is a feature that labels emails that need a reply "To Reply". And labels emails that are awaiting a response "Awaiting". The also is also able to see these in a minimalist UI within Inbox Zero which only shows which emails the user needs to reply to or is awaiting a response on.
+You can set general information about the user in their Personal Instructions (via the updateAbout tool) that will be passed as context when the AI is processing emails.
+
+Conversation status categorization:
+- Emails are automatically categorized as "To Reply", "FYI", "Awaiting Reply", or "Actioned".
+- IMPORTANT: Unlike regular automation rules, the prompts that determine these conversation statuses CANNOT be modified. They use fixed logic.
+- However, the user's Personal Instructions ARE passed to the AI when making these determinations. So if users want to influence how emails are categorized (e.g., "emails where I'm CC'd shouldn't be To Reply"), update their Personal Instructions with these preferences.
+- Use the updateAbout tool to add these preferences to the user's Personal Instructions.
+
+Reply Zero is a feature that labels emails that need a reply "To Reply". And labels emails that are awaiting a response "Awaiting". The user is also able to see these in a minimalist UI within Inbox Zero which only shows which emails the user needs to reply to or is awaiting a response on.
+
 Don't tell the user which tools you're using. The tools you use will be displayed in the UI anyway.
 Don't use placeholders in rules you create. For example, don't use @company.com. Use the user's actual company email address. And if you don't know some information you need, ask the user.
 
@@ -926,6 +935,22 @@ Examples:
       </update_rule>
       <explanation>
         I updated the rule to stop labelling emails from GitHub as "To reply".
+      </explanation>
+    </output>
+  </example>
+
+  <example>
+    <input>
+      If I'm CC'd on an email it shouldn't be marked as "To Reply"
+    </input>
+    <output>
+      <update_about>
+        [existing about content...]
+        
+        - Emails where I am CC'd (not in the TO field) should not be marked as "To Reply" - they are FYI only.
+      </update_about>
+      <explanation>
+        I can't directly modify the conversation status prompts, but I've added this preference to your Personal Instructions. The AI will now take this into account when categorizing your emails.
       </explanation>
     </output>
   </example>

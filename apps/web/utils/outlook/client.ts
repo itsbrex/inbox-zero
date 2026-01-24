@@ -1,6 +1,7 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import type { User } from "@microsoft/microsoft-graph-types";
 import { saveTokens } from "@/utils/auth";
+import { cleanupInvalidTokens } from "@/utils/auth/cleanup-invalid-tokens";
 import { env } from "@/env";
 import type { Logger } from "@/utils/logger";
 import { SCOPES } from "@/utils/outlook/scopes";
@@ -18,6 +19,7 @@ export class OutlookClient {
   private readonly accessToken: string;
   private readonly logger: Logger;
   private folderIdCache: Record<string, string> | null = null;
+  private categoryMapCache: Map<string, string> | null = null;
 
   constructor(accessToken: string, logger: Logger) {
     this.accessToken = accessToken;
@@ -51,6 +53,18 @@ export class OutlookClient {
 
   setFolderIdCache(cache: Record<string, string>): void {
     this.folderIdCache = cache;
+  }
+
+  getCategoryMapCache(): Map<string, string> | null {
+    return this.categoryMapCache;
+  }
+
+  setCategoryMapCache(cache: Map<string, string>): void {
+    this.categoryMapCache = cache;
+  }
+
+  invalidateCategoryMapCache(): void {
+    this.categoryMapCache = null;
   }
 
   // Helper methods for common operations
@@ -224,6 +238,13 @@ export const getOutlookClientWithRefresh = async ({
             errorMessage,
           },
         );
+
+        await cleanupInvalidTokens({
+          emailAccountId,
+          reason: "invalid_grant",
+          logger,
+        });
+
         throw new SafeError(
           "Your Microsoft authorization has expired. Please sign out and log in again to reconnect your account.",
         );
@@ -274,7 +295,8 @@ export function getLinkingOAuth2Url() {
     response_type: "code",
     redirect_uri: `${env.NEXT_PUBLIC_BASE_URL}/api/outlook/linking/callback`,
     scope: SCOPES.join(" "),
-    prompt: "select_account",
+    // we can't use select_account because we need a new refresh token if the users is stale
+    prompt: "consent",
   });
 
   return `${baseUrl}?${params.toString()}`;

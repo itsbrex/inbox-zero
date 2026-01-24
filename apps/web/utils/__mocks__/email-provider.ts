@@ -94,6 +94,8 @@ export const createMockEmailProvider = (
   markReadThread: vi.fn().mockResolvedValue(undefined),
   getDraft: vi.fn().mockResolvedValue(null),
   deleteDraft: vi.fn().mockResolvedValue(undefined),
+  createDraft: vi.fn().mockResolvedValue({ id: "draft-new" }),
+  updateDraft: vi.fn().mockResolvedValue(undefined),
   createLabel: vi
     .fn()
     .mockResolvedValue({ id: "label1", name: "Test Label", type: "user" }),
@@ -110,6 +112,9 @@ export const createMockEmailProvider = (
     .fn()
     .mockResolvedValue({ messages: [], nextPageToken: undefined }),
   getMessagesFromSender: vi
+    .fn()
+    .mockResolvedValue({ messages: [], nextPageToken: undefined }),
+  getMessagesWithAttachments: vi
     .fn()
     .mockResolvedValue({ messages: [], nextPageToken: undefined }),
   getThreadsWithParticipant: vi.fn().mockResolvedValue([]),
@@ -131,7 +136,7 @@ export const createMockEmailProvider = (
   getThreadsFromSenderWithSubject: vi.fn().mockResolvedValue([]),
   processHistory: vi.fn().mockResolvedValue(undefined),
   moveThreadToFolder: vi.fn().mockResolvedValue(undefined),
-  getOrCreateOutlookFolderIdByName: vi.fn().mockResolvedValue("folder1"),
+  getOrCreateFolderIdByName: vi.fn().mockResolvedValue("folder1"),
   sendEmailWithHtml: vi.fn().mockResolvedValue(undefined),
   getDrafts: vi.fn().mockResolvedValue([]),
   ...overrides,

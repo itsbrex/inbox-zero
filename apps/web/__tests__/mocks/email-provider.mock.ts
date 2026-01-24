@@ -78,6 +78,9 @@ export function createMockEmailProvider(
     getMessagesFromSender: vi
       .fn()
       .mockResolvedValue({ messages: [], nextPageToken: undefined }),
+    getMessagesWithAttachments: vi
+      .fn()
+      .mockResolvedValue({ messages: [], nextPageToken: undefined }),
 
     // Labels and folders
     getLabels: vi.fn().mockResolvedValue([]),
@@ -111,6 +114,8 @@ export function createMockEmailProvider(
     draftEmail: vi.fn().mockResolvedValue({ draftId: "draft-123" }),
     getDraft: vi.fn().mockResolvedValue(null),
     deleteDraft: vi.fn().mockResolvedValue(undefined),
+    createDraft: vi.fn().mockResolvedValue({ id: "draft-new" }),
+    updateDraft: vi.fn().mockResolvedValue(undefined),
     replyToEmail: vi.fn().mockResolvedValue(undefined),
     sendEmail: vi.fn().mockResolvedValue(undefined),
     sendEmailWithHtml: vi
@@ -139,7 +144,7 @@ export function createMockEmailProvider(
       .mockResolvedValue(false),
     isReplyInThread: vi.fn().mockReturnValue(false),
     isSentMessage: vi.fn().mockReturnValue(false),
-    getOrCreateOutlookFolderIdByName: vi.fn().mockResolvedValue("folder-123"),
+    getOrCreateFolderIdByName: vi.fn().mockResolvedValue("folder-123"),
     getSignatures: vi.fn().mockResolvedValue([]),
 
     // Watch/webhooks

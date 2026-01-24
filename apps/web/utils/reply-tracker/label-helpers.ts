@@ -9,7 +9,7 @@ import {
 import { getRuleLabel } from "@/utils/rule/consts";
 import { labelMessageAndSync } from "@/utils/label.server";
 
-type LabelIds = Record<
+export type LabelIds = Record<
   ConversationStatus,
   {
     labelId: string | null;
@@ -174,7 +174,9 @@ export async function applyThreadStatusLabel({
   logger.info("Thread status label applied successfully");
 }
 
-async function getLabelsFromDb(emailAccountId: string): Promise<LabelIds> {
+export async function getLabelsFromDb(
+  emailAccountId: string,
+): Promise<LabelIds> {
   const rules = await prisma.rule.findMany({
     where: {
       emailAccountId,

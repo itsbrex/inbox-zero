@@ -2,6 +2,7 @@ import type { EmailAccountWithAI } from "@/utils/llms/types";
 import type { EmailForLLM } from "@/utils/types";
 import { ActionType, LogicalOperator } from "@/generated/prisma/enums";
 import type { Action, Prisma } from "@/generated/prisma/client";
+import { isGoogleProvider } from "@/utils/email/provider-types";
 
 interface EmailAccountSelect {
   id: string;
@@ -146,6 +147,8 @@ export function getMockMessage({
   snippet = "Test message",
   textPlain = "Test content",
   textHtml = "<p>Test content</p>",
+  labelIds = [],
+  attachments = [],
 }: {
   id?: string;
   threadId?: string;
@@ -156,6 +159,8 @@ export function getMockMessage({
   snippet?: string;
   textPlain?: string;
   textHtml?: string;
+  labelIds?: string[];
+  attachments?: any[];
 } = {}) {
   return {
     id,
@@ -170,9 +175,9 @@ export function getMockMessage({
     snippet,
     textPlain,
     textHtml,
-    attachments: [],
+    attachments,
     inline: [],
-    labelIds: [],
+    labelIds,
     subject,
     date: new Date().toISOString(),
   };
@@ -279,7 +284,7 @@ export function getCalendarConnection({
   return {
     id: `conn-${provider}`,
     provider,
-    email: `test@${provider === "google" ? "gmail" : "outlook"}.com`,
+    email: `test@${isGoogleProvider(provider) ? "gmail" : "outlook"}.com`,
     accessToken: "token",
     refreshToken: "refresh",
     expiresAt: new Date(),

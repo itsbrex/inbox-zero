@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableHead,
 } from "@/components/ui/table";
-import { MessageText } from "@/components/Typography";
+import { MessageText, MutedText } from "@/components/Typography";
 import {
   addGroupItemAction,
   deleteGroupItemAction,
@@ -96,21 +96,6 @@ function ViewGroupInner({ groupId }: { groupId: string }) {
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add pattern
               </Button>
-
-              {!!group?.items?.length && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link
-                    href={prefixPath(
-                      emailAccountId,
-                      `/assistant/group/${groupId}/examples`,
-                    )}
-                    target="_blank"
-                  >
-                    <ExternalLinkIcon className="mr-2 size-4" />
-                    Matches
-                  </Link>
-                </Button>
-              )}
             </div>
           </div>
         )}
@@ -324,9 +309,9 @@ function GroupItemList({
               </TableCell>
               <TableCell className="flex items-center justify-end gap-4 py-2 text-right">
                 <Tooltip content="Date added">
-                  <span className="text-sm text-muted-foreground">
+                  <MutedText>
                     {formatShortDate(new Date(item.createdAt))}
-                  </span>
+                  </MutedText>
                 </Tooltip>
 
                 <Button
