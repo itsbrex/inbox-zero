@@ -343,7 +343,7 @@ inbox-zero-ai:lint:
 inbox-zero-ai:lint:   × Biome exited because the configuration resulted in errors. Please fix them.
 inbox-zero-ai:lint:   
 inbox-zero-ai:lint: 
-inbox-zero-ai:lint:  ELIFECYCLE  Command failed with exit code 1.
+inbox-zero-ai:lint:  ELIFECYCLE  Command failed with exit code 1.
 inbox-zero-ai:lint: ERROR: command finished with error: command (/Users/hack/github/inbox-zero/apps/web) /Users/hack/Library/pnpm/.tools/pnpm/10.28.1/bin/pnpm run lint exited (1)
 inbox-zero-ai#lint: command (/Users/hack/github/inbox-zero/apps/web) /Users/hack/Library/pnpm/.tools/pnpm/10.28.1/bin/pnpm run lint exited (1)
 
@@ -353,7 +353,7 @@ Cached:    0 cached, 1 total
 Failed:    inbox-zero-ai#lint
 
  ERROR  run failed: command  exited (1)
- ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
 ```
 </details></tool-use>
 
@@ -2040,10 +2040,8 @@ Run biome with verbose to see config resolution
   i   Expected:                     2.3.11
       Found:                        2.1.2
   
-  
   i Run the command biome migrate to migrate the configuration file.
   
-
 /Users/hack/github/inbox-zero/biome.json:308:9 deserialize ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   × Found an unknown key `noAwaitInLoop`.
@@ -2558,10 +2556,8 @@ Run biome directly without turbo
   i   Expected:                     2.3.11
       Found:                        2.1.2
   
-  
   i Run the command biome migrate to migrate the configuration file.
   
-
 /Users/hack/github/inbox-zero/biome.json:308:9 deserialize ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   × Found an unknown key `noAwaitInLoop`.
@@ -2923,7 +2919,7 @@ Check biome version in ultracite
 ```
 The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). To tell you how to proceed, the user said:
 I just successfully did this:
-pnpm dlx ultracite init --linter biome --pm pnpm --editors cursor --editors antigravity --editors vscode --agents copilot --agents claude --agents codex --agents gemini --agents warp --agents droid --agents qwen --hooks cursor --frameworks next --migrate eslint --migrate prettier
+ultracite init --linter biome --pm pnpm --editors cursor --editors antigravity --editors vscode --agents copilot --agents claude --agents codex --agents gemini --agents warp --agents droid --agents qwen --hooks cursor --frameworks next --migrate eslint --migrate prettier
 Packages: +23
 +++++++++++++++++++++++
 Progress: resolved 23, reused 23, downloaded 0, added 3, done
@@ -3215,8 +3211,8 @@ pnpm check
 > inbox-zero@ check /Users/hack/github/inbox-zero
 > ultracite check
 
- ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND  No package.json (or package.yaml, or package.json5) was found in "/Users/hack/Library/Caches/pnpm/dlx/db1ba2a34b256fd887cb16caa436490e0561f821b65789b804e9b068395936f9/19bec74f137-12621/node_modules/@biomejs/biome".
- ELIFECYCLE  Command failed with exit code 1.
+ ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND  No package.json (or package.yaml, or package.json5) was found in "/Users/hack/Library/Caches/pnpm/dlx/db1ba2a34b256fd887cb16caa436490e0561f821b65789b804e9b068395936f9/19bec74f137-12621/node_modules/@biomejs/biome".
+ ELIFECYCLE  Command failed with exit code 1.
 
 ---
 
@@ -3424,7 +3420,7 @@ Progress: resolved 1793, reused 172, downloaded 1621, added 961
 Progress: resolved 1793, reused 172, downloaded 1621, added 962
 Progress: resolved 1793, reused 172, downloaded 1621, added 975
 Progress: resolved 1793, reused 172, downloaded 1621, added 979
- ERR_PNPM_ENOENT  the source path is not an existing regular file, reflink '/Users/hack/.pnpm-store/v10/files/4b/8182c2eb693663ea74c031eba1b7b34b555a50d20a2fd43e44f578ce5f33869ab2ae7067d24103e65023d8f713ef59e7e314274020d7f8a4d29b4232e68494' -> '/opt/homebrew/opt/pnpm/pgpass@1.0.5/node_modules/pgpass_tmp_74920/lib/helper.js'
+ ERR_PNPM_ENOENT  the source path is not an existing regular file, reflink '/Users/hack/.pnpm-store/v10/files/4b/8182c2eb693663ea74c031eba1b7b34b555a50d20a2fd43e44f578ce5f33869ab2ae7067d24103e65023d8f713ef59e7e314274020d7f8a4d29b4232e68494' -> '/opt/homebrew/opt/pnpm/pgpass@1.0.5/node_modules/pgpass_tmp_74920/lib/helper.js'
 ```
 </details></tool-use>
 
@@ -3443,7 +3439,7 @@ Check pnpm store status
 `pnpm store status 2>&1`
 ```
 Exit code 1
- ERR_PNPM_MODIFIED_DEPENDENCY  Packages in the store have been mutated
+ ERR_PNPM_MODIFIED_DEPENDENCY  Packages in the store have been mutated
 
 These packages are modified:
 @acemir/cssom@0.9.31
@@ -3779,10 +3775,10 @@ Progress: resolved 2502, reused 115, downloaded 238, added 268
 Progress: resolved 2502, reused 115, downloaded 243, added 269
 Progress: resolved 2502, reused 115, downloaded 249, added 278
 Progress: resolved 2502, reused 115, downloaded 250, added 278
- WARN  Tarball download average speed 6 KiB/s (size 9 KiB) is below 50 KiB/s: https://registry.npmjs.org/pg-pool/-/pg-pool-3.11.0.tgz (GET)
+ WARN  Tarball download average speed 6 KiB/s (size 9 KiB) is below 50 KiB/s: https://registry.npmjs.org/pg-pool/-/pg-pool-3.11.0.tgz (GET)
 Progress: resolved 2502, reused 115, downloaded 256, added 283
 Progress: resolved 2502, reused 115, downloaded 259, added 288
- ERR_PNPM_ENOENT  ENOENT: no such file or directory, copyfile '/Users/hack/.pnpm-store/v10/files/b3/ae8bdb5d43b4070fba2139ae4819417fb8ddad4e3f31b37abc12d0554e0b7a2192efb843583c98a1a025a730636b1fc162343d95bda4616c12bfe7dc2e562a' -> '/opt/homebrew/opt/pnpm/split2@4.2.0/node_modules/split2_tmp_82231/bench.js'
+ ERR_PNPM_ENOENT  ENOENT: no such file or directory, copyfile '/Users/hack/.pnpm-store/v10/files/b3/ae8bdb5d43b4070fba2139ae4819417fb8ddad4e3f31b37abc12d0554e0b7a2192efb843583c98a1a025a730636b1fc162343d95bda4616c12bfe7dc2e562a' -> '/opt/homebrew/opt/pnpm/split2@4.2.0/node_modules/split2_tmp_82231/bench.js'
 ```
 </details></tool-use>
 
@@ -3820,7 +3816,7 @@ Commands:
 
 Visit https://pnpm.io/10.x/cli/cache for documentation about this command.
 Removed all cached metadata files
- ENOENT  ENOENT: no such file or directory, stat '/Users/hack/.pnpm-store/v10/files/ed/88a9e34b89fd9ea8fd70ae20b74b598f8605dd5fe8bffdec557105e836d850d33abc3411fdab7cb51240ca67b2c4c9eb4b237c511abf150f562d4fb5ae76b4'
+ ENOENT  ENOENT: no such file or directory, stat '/Users/hack/.pnpm-store/v10/files/ed/88a9e34b89fd9ea8fd70ae20b74b598f8605dd5fe8bffdec557105e836d850d33abc3411fdab7cb51240ca67b2c4c9eb4b237c511abf150f562d4fb5ae76b4'
 
 pnpm: ENOENT: no such file or directory, stat '/Users/hack/.pnpm-store/v10/files/ed/88a9e34b89fd9ea8fd70ae20b74b598f8605dd5fe8bffdec557105e836d850d33abc3411fdab7cb51240ca67b2c4c9eb4b237c511abf150f562d4fb5ae76b4'
     at async Object.stat (node:internal/fs/promises:1038:18)
@@ -3923,7 +3919,7 @@ Diagnostics not shown: 136.
 Checked 1262 files in 1171ms. No fixes applied.
 Found 62 errors.
 Found 94 warnings.
- ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
 </bash-stdout><bash-stderr>apps/web/app/(app)/[emailAccountId]/debug/rule-history/[ruleId]/page.tsx:174:46 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -3937,7 +3933,6 @@ Found 94 warnings.
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/debug/rule-history/[ruleId]/page.tsx:175:36 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -3951,7 +3946,6 @@ apps/web/app/(app)/[emailAccountId]/debug/rule-history/[ruleId]/page.tsx:175:36 
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/no-reply/page.tsx:24:32 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -3965,7 +3959,6 @@ apps/web/app/(app)/[emailAccountId]/no-reply/page.tsx:24:32 lint/suspicious/noEx
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/settings/ModelSection.tsx:104:34 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -3979,7 +3972,6 @@ apps/web/app/(app)/[emailAccountId]/settings/ModelSection.tsx:104:34 lint/suspic
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/smart-categories/CategorizeWithAiButton.tsx:88:32 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -3993,7 +3985,6 @@ apps/web/app/(app)/[emailAccountId]/smart-categories/CategorizeWithAiButton.tsx:
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/stats/EmailAnalytics.tsx:24:62 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4006,7 +3997,6 @@ apps/web/app/(app)/[emailAccountId]/stats/EmailAnalytics.tsx:24:62 lint/suspicio
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/stats/EmailAnalytics.tsx:35:65 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4020,7 +4010,6 @@ apps/web/app/(app)/[emailAccountId]/stats/EmailAnalytics.tsx:35:65 lint/suspicio
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/stats/NewsletterModal.tsx:39:25 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4034,7 +4023,6 @@ apps/web/app/(app)/[emailAccountId]/stats/NewsletterModal.tsx:39:25 lint/suspici
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/stats/NewsletterModal.tsx:136:69 lint/suspicious/noExplicitAny ━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4048,7 +4036,6 @@ apps/web/app/(app)/[emailAccountId]/stats/NewsletterModal.tsx:136:69 lint/suspic
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/error.tsx:7:50 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4062,7 +4049,6 @@ apps/web/app/(app)/error.tsx:7:50 lint/suspicious/noExplicitAny ━━━━━�
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(landing)/error.tsx:9:50 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4076,7 +4062,6 @@ apps/web/app/(landing)/error.tsx:9:50 lint/suspicious/noExplicitAny ━━━━
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(landing)/home/Footer.tsx:76:21 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4090,7 +4075,6 @@ apps/web/app/(landing)/home/Footer.tsx:76:21 lint/suspicious/noExplicitAny ━�
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(landing)/home/Footer.tsx:87:21 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4104,7 +4088,6 @@ apps/web/app/(landing)/home/Footer.tsx:87:21 lint/suspicious/noExplicitAny ━�
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(landing)/home/Footer.tsx:102:21 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4118,7 +4101,6 @@ apps/web/app/(landing)/home/Footer.tsx:102:21 lint/suspicious/noExplicitAny ━�
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/api/lemon-squeezy/webhook/types.ts:50:10 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4132,7 +4114,6 @@ apps/web/app/api/lemon-squeezy/webhook/types.ts:50:10 lint/suspicious/noExplicit
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/utils/types.ts:9:43 lint/suspicious/noExplicitAny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   ! Unexpected any. Specify a different type.
@@ -4145,7 +4126,6 @@ apps/web/utils/types.ts:9:43 lint/suspicious/noExplicitAny ━━━━━━━
   
   i any disables many type checking rules. Its use should be avoided.
   
-
 apps/web/app/(app)/[emailAccountId]/assistant/group/ViewLearnedPatterns.tsx:194:5 lint/a11y/noNoninteractiveElementInteractions ━━━━━━━━━━
 
   × Non-interactive element should not have event handler.
@@ -4158,7 +4138,6 @@ apps/web/app/(app)/[emailAccountId]/assistant/group/ViewLearnedPatterns.tsx:194:
   
   i Consider replace semantically interactive element like <button/> or <a href/>.
   
-
 apps/web/app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx:340:11 lint/a11y/noNoninteractiveElementInteractions ━━━━━━━━━━
 
   × Non-interactive element should not have event handler.
@@ -4176,7 +4155,6 @@ apps/web/app/(app)/[emailAccountId]/reply-zero/ReplyTrackerEmails.tsx:340:11 lin
   
   i Consider replace semantically interactive element like <button/> or <a href/>.
   
-
 apps/web/app/(app)/accounts/page.tsx:127:7 lint/a11y/noNoninteractiveElementInteractions ━━━━━━━━━━━
 
   × Non-interactive element should not have event handler.
@@ -4195,7 +4173,6 @@ apps/web/app/(app)/accounts/page.tsx:127:7 lint/a11y/noNoninteractiveElementInte
   
   i Consider replace semantically interactive element like <button/> or <a href/>.
   
-
 packages/resend/emails/digest.tsx:147:9 lint/correctness/noNestedComponentDefinitions ━━━━━━━━━━━━━━
 
   × Components should not be defined inside other components.
@@ -4218,10 +4195,9 @@ packages/resend/emails/digest.tsx:147:9 lint/correctness/noNestedComponentDefini
   
   i Component definitions inside other components cause them to be recreated on every render, which can lead to performance issues and unexpected behavior.
   
-
 check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   × Some errors were emitted while running checks.
   
-
 </bash-stderr>
+

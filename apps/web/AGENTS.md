@@ -10,6 +10,14 @@
 - Run single test: `pnpm test __tests__/test-file.test.ts`
 - Run specific AI test: `pnpm test-ai ai-categorize-senders`
 
+## Git Hooks (Husky)
+- If `pnpm run prepare` prints `husky install` + “install command is DEPRECATED”, the repo is using Husky v9+ with an old script.
+- What worked: update root `package.json` to use `"prepare": "husky"` (not `husky install`).
+- First-time setup: `pnpm exec husky init` (creates `.husky/` and a sample hook).
+- If hooks aren’t running, check:
+  - `git config --local core.hooksPath` is set to `.husky/_`
+  - `.husky/` and `.husky/_` exist and contain your hook scripts
+
 ## Code Style
 
 - Use TypeScript with strict null checks

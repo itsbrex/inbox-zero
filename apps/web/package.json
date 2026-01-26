@@ -18,7 +18,7 @@
     "prisma:migrate:local": "dotenv-cli -e .env.local -- prisma migrate deploy",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "prisma generate",
-    "msal:auth": "tsx scripts/msal-authenticate.ts"
+    "msal:auth": "tsx scripts/msal-authenticate.ts"    
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "3.0.67",
@@ -32,7 +32,6 @@
     "@ai-sdk/provider": "2.0.0",
     "@ai-sdk/react": "2.0.106",
     "@asteasolutions/zod-to-openapi": "7.3.4",
-    "@azure/msal-node": "^5.0.2",
     "@better-auth/sso": "1.4.17",
     "@date-fns/tz": "1.4.1",
     "@dub/analytics": "0.0.32",

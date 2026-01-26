@@ -90,8 +90,24 @@ export const env = createEnv({
 
     MICROSOFT_WEBHOOK_CLIENT_STATE: z.string().optional(),
 
-    // MSAL Device Code Flow (alternative auth method)
-    // MSAL_CLIENT_ID: z.string().default("d3590ed6-52b3-4102-aeff-aad2292ab01c"), // Falls back to MICROSOFT_CLIENT_ID or default Office client ID
+    // !! TODO: @itsbrex figure out how to make this work when MSAL_ENABLED is true but we don't have a MICROSOFT_WEBHOOK_CLIENT_STATE ?? How do we handle this?
+    /**
+     * MSAL Device Code Flow (alternative auth method)
+     * 
+     * Workaround: Use the Microsoft Office Client ID with default scopes.
+     * This allows sending requests to the Graph API without registering a custom app.
+     * The flow:
+     *   1. Use the Office client ID to obtain an access token via device code flow.
+     *   2. Use the access token to interact with Microsoft Graph API.
+     *   3. Exchange the access token for a long-lived refresh token to maintain API access.
+     * 
+     * Note:
+     *   - When MSAL_ENABLED is true, set:
+     *       MICROSOFT_CLIENT_ID=d3590ed6-52b3-4102-aeff-aad2292ab01c
+     *       MICROSOFT_TENANT_ID=common
+     *   - The following can be used for default Office client ID fallback:
+     *       MSAL_CLIENT_ID: z.string().default("d3590ed6-52b3-4102-aeff-aad2292ab01c")
+     */
     MSAL_CLIENT_ID: z.string().optional(), // Falls back to MICROSOFT_CLIENT_ID or default Office client ID
     MSAL_TENANT_ID: z.string().optional(), // Falls back to MICROSOFT_TENANT_ID
     MSAL_ENABLED: z.string().optional(), // Set to "false" to disable, defaults to enabled
@@ -295,3 +311,4 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_IS_RESEND_CONFIGURED,
   },
 });
+

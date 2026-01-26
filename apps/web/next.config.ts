@@ -2,6 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 import { withAxiom } from "next-axiom";
 import nextMdx from "@next/mdx";
 import withSerwistInit from "@serwist/next";
+import path from "node:path";
 import { env } from "./env";
 import type { NextConfig } from "next";
 
@@ -20,6 +21,9 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["@sentry/nextjs", "@sentry/node"],
   turbopack: {
+    // Turbopack infers the root from the workspace lockfile. In this monorepo the lockfile is
+    // at the repo root, so we set the root explicitly to ensure package resolution is stable.
+    root: path.resolve(__dirname, "..", ".."),
     rules: {
       "*.svg": {
         loaders: ["@svgr/webpack"],
@@ -335,6 +339,7 @@ if (!env.AUTH_SECRET && !env.NEXTAUTH_SECRET) {
   );
 }
 
+// !! TODO: figure out how to make this work when MSAL_ENABLED is true but we don't have a MICROSOFT_WEBHOOK_CLIENT_STATE ?? How do we handle this?
 if (env.MICROSOFT_CLIENT_ID && !env.MICROSOFT_WEBHOOK_CLIENT_STATE) {
   throw new Error(
     "MICROSOFT_WEBHOOK_CLIENT_STATE environment variable must be defined",
@@ -349,3 +354,4 @@ const withSerwist = withSerwistInit({
 });
 
 export default withAxiom(withSerwist(exportConfig));
+

@@ -6,7 +6,7 @@
     "dev": "turbo dev --filter=./apps/web",
     "test": "turbo run test --filter=./apps/web",
     "lint": "turbo lint",
-    "prepare": "husky install",
+    "prepare": "husky",
     "ncu": "ncu -u -ws",
     "check": "ultracite check",
     "fix": "ultracite fix",
@@ -17,9 +17,9 @@
     "docker:local:run": "./docker/scripts/run-local.sh"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.2",
+    "@biomejs/biome": "2.3.12",
     "@clack/prompts": "0.11.0",
-    "@turbo/gen": "2.6.2",
+    "@turbo/gen": "2.7.6",
     "commander": "14.0.2",
     "husky": "9.1.7",
     "lint-staged": "16.2.5",
@@ -27,9 +27,9 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "4.21.0",
     "turbo": "2.7.1",
-    "ultracite": "5.3.3"
+    "ultracite": "7.0.12"
   },
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.28.0+sha512.05df71d1421f21399e053fde567cea34d446fa02c76571441bfc1c7956e98e363088982d940465fd34480d4d90a0668bc12362f8aa88000a64e83d0b0e47be48",
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
       "ultracite fix"
@@ -42,6 +42,15 @@
     "overrides": {
       "@types/react": "19.0.10",
       "@types/react-dom": "19.0.4"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "@sentry/cli",
+      "core-js",
+      "core-js-pure",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
   }
 }
