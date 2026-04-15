@@ -329,7 +329,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)(
     test("edited Slack drafts send the synced Gmail draft", async () => {
       const {
         sendMessagingRuleNotification,
-        handleSlackRuleNotificationAction,
+        handleRuleNotificationAction,
         handleSlackRuleNotificationModalSubmit,
       } = await import("@/utils/messaging/rule-notifications");
 
@@ -583,7 +583,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)(
 
         expect(editedSlackMessage?.text).toContain(editedContent);
 
-        await handleSlackRuleNotificationAction({
+        await handleRuleNotificationAction({
           event: {
             actionId: "rule_draft_send",
             value: slackActionState.id,

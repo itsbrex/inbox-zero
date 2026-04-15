@@ -52,10 +52,10 @@ import {
   isHelpCommand,
 } from "@/utils/messaging/prompt-commands";
 import {
-  handleSlackRuleNotificationAction,
+  handleRuleNotificationAction,
   handleSlackRuleNotificationModalSubmit,
+  RULE_NOTIFICATION_ACTION_IDS,
   SLACK_DRAFT_EDIT_MODAL_ID,
-  SLACK_RULE_NOTIFICATION_ACTION_IDS,
 } from "@/utils/messaging/rule-notifications";
 import {
   getMessagingAdapterRegistry,
@@ -450,9 +450,9 @@ function registerMessagingHandlers({
     },
   );
 
-  bot.onAction([...SLACK_RULE_NOTIFICATION_ACTION_IDS], async (event) => {
+  bot.onAction([...RULE_NOTIFICATION_ACTION_IDS], async (event) => {
     const handlerLogger = getHandlerLogger();
-    await handleSlackRuleNotificationAction({
+    await handleRuleNotificationAction({
       event,
       logger: handlerLogger,
     });
