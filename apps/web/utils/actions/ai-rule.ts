@@ -121,11 +121,6 @@ export const runRulesAction = actionClient
           },
           include: {
             actions: true,
-            _count: {
-              select: {
-                attachmentSources: true,
-              },
-            },
           },
         })
         .catch((error) => {
@@ -195,11 +190,6 @@ export const testAiCustomContentAction = actionClient
         },
         include: {
           actions: true,
-          _count: {
-            select: {
-              attachmentSources: true,
-            },
-          },
         },
       });
 
