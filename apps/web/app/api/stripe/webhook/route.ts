@@ -2,6 +2,11 @@ import type Stripe from "stripe";
 import { headers } from "next/headers";
 import { after, NextResponse } from "next/server";
 import { getStripe } from "@/ee/billing/stripe";
+import {
+  getStripeCustomerIdForRefund,
+  isStripeRefundEventType,
+  stripeRefundEvents,
+} from "@/ee/billing/stripe/refunds";
 import { withError } from "@/utils/middleware";
 import type { Logger } from "@/utils/logger";
 import { syncStripeDataToDb } from "@/ee/billing/stripe/sync-stripe";
@@ -84,14 +89,13 @@ const allowedEvents: Stripe.Event.Type[] = [
   "payment_intent.succeeded",
   "payment_intent.payment_failed",
   "payment_intent.canceled",
+  ...stripeRefundEvents,
 ];
 
 export async function processEvent(event: Stripe.Event, logger: Logger) {
   if (!allowedEvents.includes(event.type)) return;
 
-  // All the events we track have a customerId
-  const customerId =
-    "customer" in event.data.object ? event.data.object.customer : null;
+  const customerId = await getStripeCustomerIdForEvent(event);
 
   if (!customerId || typeof customerId !== "string") {
     logger.error("ID isn't string", { event });
@@ -250,4 +254,28 @@ async function getCustomerEmail(customerId: string) {
   });
 
   return premium?.users[0]?.email;
+}
+
+async function getStripeCustomerIdForEvent(event: Stripe.Event) {
+  const object = event.data.object;
+  const customerId =
+    "customer" in object ? normalizeStripeId(object.customer) : null;
+
+  if (customerId) {
+    return customerId;
+  }
+
+  if (!isStripeRefundEventType(event.type)) {
+    return null;
+  }
+
+  return await getStripeCustomerIdForRefund(object as Stripe.Refund);
+}
+
+function normalizeStripeId(value: string | { id: string } | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return typeof value === "string" ? value : value.id;
 }

@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProcessorType } from "@/generated/prisma/enums";
 import { createScopedLogger } from "@/utils/logger";
 
-const mockFindUnique = vi.fn();
-const mockUpsert = vi.fn();
+const { mockFindUnique, mockUpsert } = vi.hoisted(() => ({
+  mockFindUnique: vi.fn(),
+  mockUpsert: vi.fn(),
+}));
 
 vi.mock("@/utils/prisma", () => ({
   default: {
@@ -84,6 +86,9 @@ describe("syncStripeInvoicePayment", () => {
         status: "paid",
         tax: 300,
         taxInclusive: false,
+        refunded: false,
+        refundedAt: null,
+        refundedAmount: null,
         billingReason: "subscription_cycle",
         createdAt: new Date("2023-11-14T22:13:20.000Z"),
         updatedAt: new Date("2023-11-14T22:20:00.000Z"),

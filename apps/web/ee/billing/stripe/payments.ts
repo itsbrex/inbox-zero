@@ -1,5 +1,11 @@
 import type Stripe from "stripe";
 import { ProcessorType } from "@/generated/prisma/enums";
+import {
+  getStripeInvoiceForRefundEvent,
+  getStripeRefundState,
+  isStripeRefundEventType,
+  stripeRefundEvents,
+} from "@/ee/billing/stripe/refunds";
 import prisma from "@/utils/prisma";
 import type { Logger } from "@/utils/logger";
 
@@ -9,6 +15,7 @@ const stripeInvoicePaymentEvents = new Set<Stripe.Event.Type>([
   "invoice.payment_failed",
   "invoice.payment_action_required",
   "invoice.marked_uncollectible",
+  ...stripeRefundEvents,
 ]);
 
 export async function syncStripeInvoicePayment({
@@ -18,7 +25,7 @@ export async function syncStripeInvoicePayment({
   event: Stripe.Event;
   logger: Logger;
 }) {
-  const invoice = getStripeInvoiceForPaymentSync(event);
+  const invoice = await getStripeInvoiceForPaymentSync(event, logger);
   if (!invoice) return;
 
   await upsertStripeInvoicePayment({
@@ -90,8 +97,19 @@ export async function upsertStripeInvoicePayment({
   });
 }
 
-export function getStripeInvoiceForPaymentSync(event: Stripe.Event) {
+export async function getStripeInvoiceForPaymentSync(
+  event: Stripe.Event,
+  logger: Logger,
+) {
   if (!stripeInvoicePaymentEvents.has(event.type)) return null;
+
+  if (isStripeRefundEventType(event.type)) {
+    return await getStripeInvoiceForRefundEvent({
+      refund: event.data.object as Stripe.Refund,
+      logger,
+      eventType: event.type,
+    });
+  }
 
   const invoice = event.data.object as Stripe.Invoice;
   if (!invoice?.id) return null;
@@ -113,6 +131,7 @@ export function buildStripePaymentData({
     invoice.parent?.subscription_details?.subscription ?? null,
   );
   const tax = getStripeInvoiceTaxAmount(invoice);
+  const refundState = getStripeRefundState(invoice);
 
   return {
     premiumId,
@@ -126,11 +145,14 @@ export function buildStripePaymentData({
     processorCustomerId: customerId,
     amount: invoice.total,
     currency: invoice.currency.toUpperCase(),
-    status: invoice.status ?? "unknown",
+    status: refundState.status,
     tax,
     // Stripe invoice payloads do not expose a single reliable invoice-level
     // inclusive/exclusive boolean without expanded line-price inspection.
     taxInclusive: false,
+    refunded: refundState.refunded,
+    refundedAt: refundState.refundedAt,
+    refundedAmount: refundState.refundedAmount,
     billingReason: invoice.billing_reason ?? null,
   };
 }
