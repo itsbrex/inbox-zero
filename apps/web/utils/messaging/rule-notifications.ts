@@ -5,8 +5,6 @@ import {
   Card,
   CardText,
   LinkButton,
-  Select,
-  SelectOption,
   type ActionEvent,
   type CardElement,
   type CardChild,
@@ -47,6 +45,7 @@ import { getFormattedSenderAddress } from "@/utils/email/get-formatted-sender-ad
 import { resolveActionAttachments } from "@/utils/ai/action-attachments";
 import { quotePlainTextContent } from "@/utils/email/quoted-plain-text";
 import { formatReplySubject } from "@/utils/email/subject";
+import { emailToContent } from "@/utils/mail";
 import { extractDraftPlainText } from "@/utils/ai/choose-rule/draft-management";
 import type { ParsedMessage } from "@/utils/types";
 import he from "he";
@@ -567,7 +566,7 @@ export async function handleRuleNotificationAction({
       await handleDraftEdit({ context, event, logger });
       return;
     case RULE_DRAFT_DISMISS_ACTION_ID:
-      await handleDraftDismiss({ context, event, logger });
+      await handleDismissNotification({ context, event, logger });
       return;
     case RULE_NOTIFY_ARCHIVE_ACTION_ID:
       await handleArchiveNotification({ context, event, logger });
@@ -953,7 +952,7 @@ async function handleDraftEdit({
   });
 }
 
-async function handleDraftDismiss({
+async function handleDismissNotification({
   context,
   event,
   logger,
@@ -966,7 +965,9 @@ async function handleDraftDismiss({
     await postNotificationFeedback({
       event,
       logger,
-      text: "That draft has already been handled.",
+      text: isDraftReplyActionType(context.type)
+        ? "That draft has already been handled."
+        : "That notification has already been handled.",
     });
     return;
   }
@@ -982,7 +983,11 @@ async function handleDraftDismiss({
     event.threadId,
     event.messageId,
     buildTerminalCard({
-      title: "Draft reply",
+      title: isDraftReplyActionType(context.type)
+        ? "Draft reply"
+        : getInfoNotificationTitle(
+            context.executedRule.rule?.systemType ?? null,
+          ),
       message: "Dismissed.",
     }),
   );
@@ -1517,26 +1522,23 @@ function buildNotificationCard({
               label: "Mark read",
               value: actionId,
             }),
-            Select({
-              id: RULE_NOTIFY_MORE_ACTION_ID,
-              label: "More",
-              placeholder: "More actions",
-              options: [
-                SelectOption({
-                  label: "Delete",
-                  value: getMoreNotificationActionValue({
-                    actionId,
-                    selectedActionId: RULE_NOTIFY_TRASH_ACTION_ID,
-                  }),
-                }),
-                SelectOption({
-                  label: "Spam",
-                  value: getMoreNotificationActionValue({
-                    actionId,
-                    selectedActionId: RULE_NOTIFY_MARK_SPAM_ACTION_ID,
-                  }),
-                }),
-              ],
+            Button({
+              id: RULE_NOTIFY_TRASH_ACTION_ID,
+              label: "Delete",
+              style: "danger",
+              value: actionId,
+            }),
+            Button({
+              id: RULE_NOTIFY_MARK_SPAM_ACTION_ID,
+              label: "Spam",
+              style: "danger",
+              value: actionId,
+            }),
+            ...(openLink ? [LinkButton(openLink)] : []),
+            Button({
+              id: RULE_DRAFT_DISMISS_ACTION_ID,
+              label: "Dismiss",
+              value: actionId,
             }),
           ],
     ),
@@ -1559,16 +1561,6 @@ function buildTerminalCard({
     title,
     children: [CardText(message)],
   });
-}
-
-function getMoreNotificationActionValue({
-  actionId,
-  selectedActionId,
-}: {
-  actionId: string;
-  selectedActionId: string;
-}) {
-  return `${selectedActionId}:${actionId}`;
 }
 
 function buildTelegramNotificationCard({
@@ -1677,8 +1669,12 @@ function buildEmailSummary(email: {
   ].join("\n");
 }
 
-function buildEmailPreview(email: { snippet: string; textPlain?: string }) {
-  const rawPreview = email.snippet || email.textPlain || "";
+function buildEmailPreview(email: {
+  snippet: string;
+  textPlain?: string;
+  textHtml?: string;
+}) {
+  const rawPreview = emailToContent(email, { maxLength: 0 });
   const preview = escapeSlackText(
     removeExcessiveWhitespace(he.decode(rawPreview)).trim(),
   );
